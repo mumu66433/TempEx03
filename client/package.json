@@ -7,7 +7,9 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {},
+  "dependencies": {
+    "phaser": "^4.0.0"
+  },
   "devDependencies": {
     "vite": "^6.0.0"
   }

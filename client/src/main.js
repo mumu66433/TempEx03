@@ -1,108 +1,129 @@
+import * as Phaser from 'phaser';
 import './style.css';
 import initLegacyAuth from './auth/legacyAuth.js';
-import { clearAccountProfile, getSavedAccountProfile, saveAccountProfile } from './utils/storage.js';
+import { resolvePlayerChapterId } from './data/gameData.js';
+import BootScene from './scenes/BootScene.js';
+import LoginScene from './scenes/LoginScene.js';
+import HomeScene from './scenes/HomeScene.js';
+import SkillScene from './scenes/SkillScene.js';
+import { getSavedPlayer, savePlayer } from './utils/storage.js';
 
-const DESIGN_WIDTH = 750;
-const DESIGN_HEIGHT = 1624;
+import { GAME_HEIGHT, GAME_WIDTH } from './data/gameData.js';
+
+function applyAppScale(appFrame) {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const scale = Math.min(viewportWidth / GAME_WIDTH, viewportHeight / GAME_HEIGHT);
+  appFrame.style.setProperty('--app-scale', String(scale));
+}
 
 function buildShell() {
   const root = document.querySelector('#app');
   root.innerHTML = `
     <div class="app-frame" data-app-frame>
       <div class="game-shell">
-        <section class="account-screen" data-account-screen>
-          <div class="account-hero">
-            <p class="account-eyebrow">账号中心</p>
-            <h1>TempEx03</h1>
-            <p class="account-description">
-              当前项目只保留账号登录与注册。登录后，前端仅展示当前账号信息，所有游戏数据都由服务端管理。
-            </p>
-          </div>
-
-          <div class="account-card" data-account-card>
-            <p class="account-card-label">当前账号</p>
-            <h2 data-account-name>未登录</h2>
-            <p class="account-card-meta" data-account-meta>请先登录或注册新账号。</p>
-
-            <div class="account-card-actions">
-              <button class="sdk-secondary account-switch-button" type="button" data-switch-account>
-                切换账号
-              </button>
-            </div>
-          </div>
-        </section>
+        <div class="game-stage" data-game-stage></div>
         <div class="auth-layer" data-auth-layer></div>
       </div>
     </div>
   `;
 
   return {
+    root,
     frame: root.querySelector('[data-app-frame]'),
-    accountScreen: root.querySelector('[data-account-screen]'),
-    accountName: root.querySelector('[data-account-name]'),
-    accountMeta: root.querySelector('[data-account-meta]'),
-    switchButton: root.querySelector('[data-switch-account]'),
+    stage: root.querySelector('[data-game-stage]'),
     authLayer: root.querySelector('[data-auth-layer]'),
   };
 }
 
-function applyAppScale(appFrame) {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  const scale = Math.min(viewportWidth / DESIGN_WIDTH, viewportHeight / DESIGN_HEIGHT);
-  appFrame.style.setProperty('--app-scale', String(scale));
-}
+async function fetchChapterConfig() {
+  try {
+    const response = await fetch('/api/config/chapter');
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload.ok === false) {
+      throw new Error(payload.error || `请求章节配置失败(${response.status})`);
+    }
 
-function updateAccountCard(ui, player) {
-  if (!player) {
-    ui.accountScreen.dataset.authenticated = 'false';
-    ui.accountName.textContent = '未登录';
-    ui.accountMeta.textContent = '请先登录或注册新账号。';
-    return;
+    return Array.isArray(payload.chapters) ? payload.chapters : [];
+  } catch (error) {
+    console.warn('[chapter-config] load failed:', error);
+    return [];
   }
-
-  ui.accountScreen.dataset.authenticated = 'true';
-  ui.accountName.textContent = player.nickname || player.account || '少侠';
-  ui.accountMeta.textContent = `账号：${player.account || '未填写'}，当前仅保留账号相关信息。`;
 }
 
-function start() {
+function normalizePlayer(player, chapters) {
+  const base = player || {};
+  const chapterId = resolvePlayerChapterId(base, chapters);
+
+  return {
+    name: base.name || base.nickname || base.account || '少侠',
+    nickname: base.nickname || base.name || base.account || '少侠',
+    account: base.account || '',
+    chapterId,
+  };
+}
+
+function createGame(parent) {
+  return new Phaser.Game({
+    type: Phaser.AUTO,
+    parent,
+    transparent: true,
+    backgroundColor: 'transparent',
+    scale: {
+      width: GAME_WIDTH,
+      height: GAME_HEIGHT,
+      mode: Phaser.Scale.NONE,
+    },
+    scene: [BootScene, LoginScene, HomeScene, SkillScene],
+  });
+}
+
+async function start() {
   const ui = buildShell();
   applyAppScale(ui.frame);
   window.addEventListener('resize', () => applyAppScale(ui.frame), { passive: true });
-  ui.authLayer.classList.add('hidden');
-  const savedAccount = getSavedAccountProfile();
-  updateAccountCard(ui, savedAccount);
+
+  const chapters = await fetchChapterConfig();
+  window.__chapterConfigs = chapters;
+
+  let game = null;
+  const savedPlayer = getSavedPlayer();
+  const normalizedSavedPlayer = normalizePlayer(savedPlayer, chapters);
+  if (normalizedSavedPlayer.account) {
+    savePlayer(normalizedSavedPlayer);
+  }
 
   const auth = initLegacyAuth({
     mount: ui.authLayer,
     onAuthenticated: (player) => {
-      saveAccountProfile(player);
-      updateAccountCard(ui, player);
+      const normalizedPlayer = normalizePlayer(player, chapters);
+      savePlayer(normalizedPlayer);
       ui.authLayer.classList.add('hidden');
-      auth.close();
+
+      if (!game) {
+        game = createGame(ui.stage);
+        return;
+      }
+
+      game.scene.start('LoginScene');
     },
     onOpen: () => {
       ui.authLayer.classList.remove('hidden');
-      ui.accountScreen.dataset.focused = 'false';
     },
   });
 
   window.__openLegacyAuth = () => auth.open();
-  ui.switchButton.addEventListener('click', () => {
-    clearAccountProfile();
-    updateAccountCard(ui, null);
-    auth.open();
-  });
 
-  if (!savedAccount.account) {
+  if (!normalizedSavedPlayer.account) {
     auth.open();
-    ui.accountScreen.dataset.focused = 'false';
-  } else {
-    ui.authLayer.classList.add('hidden');
-    auth.close();
-    ui.accountScreen.dataset.focused = 'true';
+    return;
   }
+
+  ui.authLayer.classList.add('hidden');
+  auth.close();
+  game = createGame(ui.stage);
 }
 
-start();
+start().catch((error) => {
+  console.error('[app] failed to start', error);
+});

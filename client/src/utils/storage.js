@@ -1,33 +1,24 @@
-const STORAGE_KEY = 'temp_ex03_account_profile';
+import { DEFAULT_PLAYER, STORAGE_KEY } from '../data/gameData.js';
 
-const DEFAULT_ACCOUNT_PROFILE = {
-  account: '',
-  nickname: '少侠',
-  name: '少侠',
-};
-
-export function getSavedAccountProfile() {
+export function getSavedPlayer() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : null;
     if (!parsed || typeof parsed !== 'object') {
-      return { ...DEFAULT_ACCOUNT_PROFILE };
+      return { ...DEFAULT_PLAYER };
     }
 
     return {
       name: parsed.name || parsed.nickname || parsed.account || '少侠',
       nickname: parsed.nickname || parsed.name || parsed.account || '少侠',
       account: parsed.account || '',
+      chapterId: Number.isInteger(Number(parsed.chapterId)) ? Number(parsed.chapterId) : 1,
     };
   } catch {
-    return { ...DEFAULT_ACCOUNT_PROFILE };
+    return { ...DEFAULT_PLAYER };
   }
 }
 
-export function saveAccountProfile(player) {
+export function savePlayer(player) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(player));
-}
-
-export function clearAccountProfile() {
-  localStorage.removeItem(STORAGE_KEY);
 }
