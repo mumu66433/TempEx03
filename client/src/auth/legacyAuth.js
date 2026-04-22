@@ -1,7 +1,5 @@
-import { savePlayer } from '../utils/storage.js';
-
 const API_BASE = '/api';
-const STORAGE_KEY = 'temp_ex02_account_history';
+const STORAGE_KEY = 'temp_ex03_account_history';
 const DEFAULT_PASSWORD = '123456';
 const MAX_HISTORY = 8;
 
@@ -207,8 +205,8 @@ function buildShell(mount) {
       <div class="sdk-panel">
         <div class="sdk-title-row">
           <div>
-            <p class="sdk-eyebrow">游戏登录</p>
-            <h2>TempEx02 SDK</h2>
+            <p class="sdk-eyebrow">账号中心</p>
+            <h2>TempEx03</h2>
           </div>
           <span class="sdk-version">v1</span>
         </div>
@@ -272,7 +270,7 @@ function buildShell(mount) {
           <button class="sdk-secondary" type="submit">注册账号</button>
         </form>
 
-        <p class="sdk-footnote">注册成功后会自动登录，用户名和密码会保存到本机。</p>
+        <p class="sdk-footnote">注册成功后会自动登录，账号信息会保存到本机，方便下次快速填充。</p>
       </div>
     </div>
   `;
@@ -365,7 +363,6 @@ function wireLoginForm(ui, onAuthenticated) {
       });
 
       upsertHistory({ account, password }, result.player);
-      savePlayer(result.player);
       renderHistory(ui, result.player.account);
       setStatus(ui, `已登录：${result.player.nickname || result.player.account}`, 'success');
       onAuthenticated(result.player);
@@ -418,7 +415,6 @@ function wireRegisterForm(ui, onAuthenticated) {
       });
 
       upsertHistory(credentials, loginResult.player);
-      savePlayer(loginResult.player);
       renderHistory(ui, loginResult.player.account);
       onAuthenticated(loginResult.player);
     } catch (error) {

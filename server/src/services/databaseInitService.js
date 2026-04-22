@@ -14,16 +14,6 @@ async function ensureDatabaseSchema() {
       "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
   `);
-
-  await prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS "Room" (
-      "id" TEXT NOT NULL PRIMARY KEY,
-      "code" TEXT NOT NULL UNIQUE,
-      "title" TEXT,
-      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
 }
 
 module.exports = {

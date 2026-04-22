@@ -1,11 +1,11 @@
-# TempEx02
+# TempEx03
 
-一个适合竖屏游戏的前后端同仓库模板。
+一个只保留账号登录注册功能的前后端同仓库模板。
 
 ## 概览
 
-- 前端：`Vite + Phaser`
-- 后端：`Node.js + Express + Socket.io`
+- 前端：`Vite`
+- 后端：`Node.js + Express`
 - 数据库：`SQLite + Prisma`
 - 设计分辨率：`750 x 1624`
 - 适配方式：等比缩放
@@ -13,18 +13,20 @@
 ## 目录
 
 ```txt
-client/   前端 Vite + Phaser
-server/   后端 Express + Socket.io + Prisma
+client/   前端 Vite
+server/   后端 Express + Prisma
 server/src/  后端代码
-server/src/assets/config excel配置目录
-server/src/config excel载目录
-docs/设定规范 设计及制作规则
+server/src/assets/config 预留目录
+server/src/config 后端配置目录
+docs/设定规范 规范与示例
 ```
 
-## 游戏配置表规范
-```txt
-excel配置表的规则参考 `docs/设定规范/Excel 配置规范.md`
-```
+## 账号规范
+
+- 当前项目只保留账号登录与注册
+- 前端不保存任何游戏数据
+- 所有游戏数据均由服务端管理
+- 账号相关的本地信息仅用于登录体验和历史填充
 
 ## 数据规范
 
@@ -72,9 +74,9 @@ npm run db:generate
 ## 启动流程
 
 1. 运行 `npm run dev` 或直接执行 `./run-dev.js`
-2. 前端会打开一个固定 `750 x 1624` 的竖屏游戏壳
+2. 前端会打开一个固定 `750 x 1624` 的竖屏账号页
 3. 如果本机没有保存登录信息，会先显示登录 / 注册界面
-4. 如果本机有保存信息，会直接自动登录并进入游戏首页
+4. 如果本机有保存信息，会直接自动登录并进入账号页
 
 ## 登录与注册
 

@@ -73,12 +73,12 @@ body {
 }
 
 .sdk-panel {
-  width: min(520px, calc(100vw - 48px));
-  border-radius: 28px;
+  width: min(620px, calc(100% - 40px));
+  border-radius: 30px;
   background: rgba(8, 15, 29, 0.92);
   border: 1px solid rgba(148, 163, 184, 0.16);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
-  padding: 24px;
+  padding: 30px;
   box-sizing: border-box;
 }
 
@@ -94,12 +94,12 @@ body {
   color: #7dd3fc;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .sdk-title-row h2 {
   margin: 0;
-  font-size: 28px;
+  font-size: 36px;
   line-height: 1;
 }
 
@@ -109,21 +109,21 @@ body {
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid rgba(148, 163, 184, 0.16);
   color: #94a3b8;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .sdk-description {
   margin: 14px 0 0;
   color: #cbd5e1;
   line-height: 1.6;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .sdk-tabs {
-  margin-top: 16px;
+  margin-top: 18px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .sdk-tab {
@@ -131,8 +131,8 @@ body {
   border-radius: 14px;
   background: rgba(15, 23, 42, 0.72);
   color: #cbd5e1;
-  padding: 12px 14px;
-  font-size: 14px;
+  padding: 14px 16px;
+  font-size: 16px;
   cursor: pointer;
 }
 
@@ -143,13 +143,13 @@ body {
 }
 
 .sdk-status {
-  margin-top: 14px;
-  padding: 10px 12px;
+  margin-top: 16px;
+  padding: 12px 14px;
   border-radius: 14px;
   background: rgba(15, 23, 42, 0.76);
   border: 1px solid rgba(148, 163, 184, 0.14);
   color: #cbd5e1;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .sdk-status[data-tone='success'] {
@@ -168,9 +168,9 @@ body {
 }
 
 .sdk-form {
-  margin-top: 16px;
+  margin-top: 18px;
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .account-history-wrap {
@@ -181,12 +181,12 @@ body {
 
 .sdk-form label {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .sdk-form span {
   color: #cbd5e1;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .sdk-form input {
@@ -196,9 +196,9 @@ body {
   background: rgba(15, 23, 42, 0.7);
   color: #f8fafc;
   border-radius: 14px;
-  padding: 13px 14px;
+  padding: 14px 16px;
   outline: none;
-  font-size: 14px;
+  font-size: 17px;
 }
 
 .sdk-form input:focus {
@@ -230,20 +230,20 @@ body {
   border-radius: 14px;
   background: rgba(15, 23, 42, 0.8);
   color: #e2e8f0;
-  padding: 0 14px;
-  font-size: 13px;
+  padding: 0 16px;
+  font-size: 15px;
   white-space: nowrap;
   cursor: pointer;
 }
 
 .icon-button {
-  width: 46px;
-  min-width: 46px;
-  height: 46px;
+  width: 50px;
+  min-width: 50px;
+  height: 50px;
   padding: 0;
   display: inline-grid;
   place-items: center;
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1;
 }
 
@@ -252,8 +252,8 @@ body {
 .switch-account-button {
   border: 0;
   border-radius: 14px;
-  padding: 13px 16px;
-  font-size: 14px;
+  padding: 15px 18px;
+  font-size: 16px;
   cursor: pointer;
 }
 
@@ -277,8 +277,8 @@ body {
   z-index: 20;
   display: grid;
   gap: 10px;
-  padding: 12px;
-  border-radius: 18px;
+  padding: 14px;
+  border-radius: 20px;
   background: rgba(15, 23, 42, 0.58);
   border: 1px solid rgba(148, 163, 184, 0.12);
   max-height: 260px;
@@ -309,12 +309,12 @@ body {
   align-items: center;
   gap: 12px;
   color: #cbd5e1;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .history-hint {
   color: #94a3b8;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .history-list {
@@ -333,8 +333,8 @@ body {
   display: grid;
   gap: 4px;
   text-align: left;
-  padding: 12px 14px;
-  border-radius: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(15, 23, 42, 0.72);
   color: #f8fafc;
@@ -347,24 +347,24 @@ body {
 }
 
 .history-account {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
 }
 
 .history-meta {
   color: #94a3b8;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .history-delete {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
   border: 1px solid rgba(248, 113, 113, 0.28);
   background: rgba(127, 29, 29, 0.18);
   color: #fecaca;
   cursor: pointer;
-  font-size: 24px;
+  font-size: 26px;
   line-height: 1;
 }
 
@@ -373,7 +373,7 @@ body {
   margin: 16px 0 2px;
   text-align: center;
   color: #64748b;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .sdk-split::before {
@@ -394,7 +394,7 @@ body {
 .sdk-footnote {
   margin: 12px 0 0;
   color: #94a3b8;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
@@ -419,7 +419,7 @@ body {
 
 .game-home-card {
   margin-top: 12px;
-  width: min(560px, calc(100vw - 36px));
+  width: min(560px, calc(100% - 36px));
   border-radius: 22px;
   background: rgba(8, 15, 29, 0.72);
   border: 1px solid rgba(148, 163, 184, 0.12);
@@ -448,9 +448,88 @@ body {
   font-size: 14px;
 }
 
+.account-screen {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 18px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top, rgba(56, 189, 248, 0.18), transparent 32%),
+    linear-gradient(180deg, #050816 0%, #020816 100%);
+}
+
+.account-hero {
+  width: min(560px, calc(100% - 48px));
+  text-align: center;
+}
+
+.account-eyebrow {
+  margin: 0 0 8px;
+  color: #7dd3fc;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.account-hero h1 {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+.account-description {
+  margin: 14px auto 0;
+  width: min(520px, 100%);
+  color: #cbd5e1;
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.account-card {
+  width: min(520px, calc(100% - 48px));
+  border-radius: 28px;
+  background: rgba(8, 15, 29, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  padding: 24px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.account-card-label {
+  margin: 0 0 8px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.account-card h2 {
+  margin: 0;
+  font-size: 34px;
+}
+
+.account-card-meta {
+  margin: 12px 0 0;
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.account-card-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+.account-switch-button {
+  min-width: 180px;
+}
+
 .switch-account-button {
   pointer-events: auto;
-  width: min(240px, calc(100vw - 36px));
+  width: min(240px, calc(100% - 36px));
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
@@ -461,24 +540,4 @@ body {
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-@media (max-width: 560px) {
-  .sdk-panel {
-    width: min(520px, 100%);
-    padding: 20px;
-    border-radius: 24px;
-  }
-
-  .sdk-tabs {
-    gap: 8px;
-  }
-
-  .sdk-title-row h2 {
-    font-size: 24px;
-  }
-
-  .game-home-card h1 {
-    font-size: 24px;
-  }
 }
