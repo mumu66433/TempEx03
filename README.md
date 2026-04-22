@@ -1,0 +1,87 @@
+# TempEx02
+
+一个适合竖屏游戏的前后端同仓库模板。
+
+## 概览
+
+- 前端：`Vite + Phaser`
+- 后端：`Node.js + Express + Socket.io`
+- 数据库：`SQLite + Prisma`
+- 设计分辨率：`750 x 1624`
+- 适配方式：等比缩放
+
+## 目录
+
+```txt
+client/   前端 Vite + Phaser
+server/   后端 Express + Socket.io + Prisma
+server/src/  后端代码
+server/src/assets/config excel配置目录
+server/src/config excel载目录
+docs/设定规范 设计及制作规则
+```
+
+## 游戏配置表规范
+```txt
+excel配置表的规则参考 `docs/设定规范/Excel 配置规范.md`
+```
+
+## 数据规范
+
+- 前端仅保留账号相关数据
+- 所有和游戏玩法相关的数据都存储在服务端
+- 前端不保留游戏数据
+- 页面展示所需数据统一由前端请求后端获取，再组装页面后显示
+
+## 开发
+
+先安装依赖：
+
+```bash
+npm install
+```
+
+启动前后端：
+
+```bash
+npm run dev
+```
+
+也可以直接运行根目录脚本：
+
+- macOS / Linux: `./run-dev.js`
+- Windows: `run-dev.cmd`
+
+`npm run dev` 会先检查 Node 和 npm 环境，自动补 `server/.env`，必要时安装依赖并生成 Prisma Client，然后同时启动前后端。
+
+默认地址：
+
+- 前端：`http://localhost:5173`
+- 后端：`http://localhost:3000`
+
+## 数据库
+
+Prisma 使用 SQLite，默认数据库路径在 `server/.env` 里配置。
+
+```bash
+npm run db:generate
+```
+
+服务启动时会自动初始化数据库表结构，不需要先手动 `db push`。
+
+## 启动流程
+
+1. 运行 `npm run dev` 或直接执行 `./run-dev.js`
+2. 前端会打开一个固定 `750 x 1624` 的竖屏游戏壳
+3. 如果本机没有保存登录信息，会先显示登录 / 注册界面
+4. 如果本机有保存信息，会直接自动登录并进入游戏首页
+
+## 登录与注册
+
+- 登录和注册在同一个弹窗里，通过顶部按钮切换
+- 注册时可以手动输入用户名
+- 用户名也可以点击“换一个”自动生成
+- 注册密码默认填 `123456`
+- 注册成功后会自动登录，并把账号密码保存到本机 `localStorage`
+- 下次打开网页时，会优先读取本机保存的信息并自动登录
+- 点击 `切换账号` 会清除本机保存信息，回到登录界面

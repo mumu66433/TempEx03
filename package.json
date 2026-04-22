@@ -1,0 +1,20 @@
+{
+  "name": "temp-ex02",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "postinstall": "npm run db:generate --workspace server",
+    "dev": "node dev.js",
+    "run": "node run-dev.js",
+    "dev:server": "npm run dev --workspace server",
+    "dev:client": "npm run dev --workspace client",
+    "build": "npm run build --workspace client",
+    "start": "npm run start --workspace server",
+    "db:generate": "npm run db:generate --workspace server",
+    "db:push": "npm run db:push --workspace server"
+  },
+  "devDependencies": {}
+}
