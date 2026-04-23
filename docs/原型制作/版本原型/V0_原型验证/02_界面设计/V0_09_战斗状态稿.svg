@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="750" height="1624" viewBox="0 0 750 1624" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="750" y2="1624" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#13233C"/>
+      <stop offset="1" stop-color="#1F4F78"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0F172A" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <rect width="750" height="1624" fill="url(#bg)"/>
+  <text x="375" y="82" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">战斗状态稿</text>
+  <text x="375" y="124" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">普通波 / 精英波 / BOSS层 / 受击 / 死亡 / 波次切换 / 暂停</text>
+
+  <rect x="42" y="166" width="666" height="154" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2" filter="url(#shadow)"/>
+  <text x="70" y="214" fill="#1F2937" font-size="28" font-weight="700">顶部 HUD</text>
+  <text x="70" y="254" fill="#475467" font-size="22">第1章 银杏村 · 第2层 第1波 / 共2波</text>
+  <rect x="510" y="196" width="150" height="46" rx="18" fill="#FFE7A8"/>
+  <text x="585" y="226" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">普通波</text>
+  <rect x="70" y="276" width="270" height="18" rx="9" fill="#E8E1D5"/>
+  <rect x="70" y="276" width="210" height="18" rx="9" fill="#5CBF75"/>
+  <rect x="380" y="276" width="270" height="18" rx="9" fill="#E8E1D5"/>
+  <rect x="380" y="276" width="180" height="18" rx="9" fill="#D96B6B"/>
+
+  <rect x="42" y="348" width="318" height="190" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
+  <text x="72" y="396" fill="#1F2937" font-size="26" font-weight="700">普通波</text>
+  <text x="72" y="432" fill="#475467" font-size="20">常规敌人，自动战斗中</text>
+  <circle cx="132" cy="486" r="34" fill="#F4C56A"/>
+  <text x="132" y="498" fill="#1F2937" font-size="26" font-weight="700" text-anchor="middle">我</text>
+  <circle cx="278" cy="486" r="30" fill="#D96B6B"/>
+  <text x="278" y="497" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">鸡</text>
+
+  <rect x="390" y="348" width="318" height="190" rx="24" fill="#FFF9F0" stroke="#D96B6B" stroke-width="3"/>
+  <text x="420" y="396" fill="#1F2937" font-size="26" font-weight="700">精英波</text>
+  <text x="420" y="432" fill="#475467" font-size="20">红色角标，敌人压迫增强</text>
+  <rect x="420" y="462" width="84" height="36" rx="14" fill="#D96B6B"/>
+  <text x="462" y="486" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">精英</text>
+  <circle cx="622" cy="486" r="36" fill="#D96B6B"/>
+  <text x="622" y="498" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">精英</text>
+
+  <rect x="42" y="566" width="666" height="202" rx="24" fill="#FFF9F0" stroke="#D99A3D" stroke-width="3"/>
+  <text x="72" y="614" fill="#1F2937" font-size="28" font-weight="700">BOSS 层</text>
+  <text x="72" y="652" fill="#475467" font-size="21">第5层固定 BOSS，胜利后进入章节结算，不再弹三选一</text>
+  <rect x="72" y="684" width="506" height="24" rx="12" fill="#E8E1D5"/>
+  <rect x="72" y="684" width="410" height="24" rx="12" fill="#D96B6B"/>
+  <text x="604" y="707" fill="#D96B6B" font-size="24" font-weight="700">鸡王</text>
+  <circle cx="600" cy="620" r="54" fill="#D99A3D"/>
+  <text x="600" y="636" fill="#FFFFFF" font-size="28" font-weight="700" text-anchor="middle">BOSS</text>
+
+  <rect x="42" y="796" width="318" height="196" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
+  <text x="72" y="844" fill="#1F2937" font-size="26" font-weight="700">受击反馈</text>
+  <text x="72" y="880" fill="#475467" font-size="20">闪白 / 飘字 / 血条过渡</text>
+  <circle cx="154" cy="936" r="38" fill="#F4C56A"/>
+  <path d="M194 900 L230 872 L218 918 L250 910 L208 964 L220 926 Z" fill="#D96B6B"/>
+  <text x="260" y="944" fill="#D96B6B" font-size="26" font-weight="700">-24</text>
+
+  <rect x="390" y="796" width="318" height="196" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
+  <text x="420" y="844" fill="#1F2937" font-size="26" font-weight="700">死亡判定</text>
+  <text x="420" y="880" fill="#475467" font-size="20">我方死亡进失败，敌方全灭进下一波</text>
+  <circle cx="494" cy="936" r="38" fill="#98A2B3" opacity="0.45"/>
+  <text x="494" y="946" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">倒下</text>
+  <text x="586" y="944" fill="#D96B6B" font-size="24" font-weight="700">失败结算</text>
+
+  <rect x="42" y="1020" width="318" height="200" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
+  <text x="72" y="1068" fill="#1F2937" font-size="26" font-weight="700">波次切换</text>
+  <text x="72" y="1104" fill="#475467" font-size="20">停留 600ms-900ms</text>
+  <rect x="82" y="1144" width="238" height="52" rx="20" fill="#13233C"/>
+  <text x="201" y="1178" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">下一波来袭</text>
+
+  <rect x="390" y="1020" width="318" height="200" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
+  <text x="420" y="1068" fill="#1F2937" font-size="26" font-weight="700">暂停面板</text>
+  <text x="420" y="1104" fill="#475467" font-size="20">遮罩 + 继续 / 返回章节</text>
+  <rect x="436" y="1136" width="222" height="48" rx="18" fill="#F4C56A"/>
+  <text x="547" y="1167" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">继续战斗</text>
+
+  <rect x="42" y="1248" width="666" height="208" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
+  <text x="72" y="1296" fill="#1F2937" font-size="28" font-weight="700">调试浮层</text>
+  <text x="72" y="1336" fill="#475467" font-size="21">仅开发环境展示：快速切章、查看属性、当前功法、强制胜利 / 失败</text>
+  <rect x="72" y="1370" width="134" height="44" rx="16" fill="#E8F2FF"/>
+  <text x="139" y="1399" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">切到第5层</text>
+  <rect x="226" y="1370" width="134" height="44" rx="16" fill="#FFE7A8"/>
+  <text x="293" y="1399" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">强制胜利</text>
+  <rect x="380" y="1370" width="134" height="44" rx="16" fill="#FCE4E4"/>
+  <text x="447" y="1399" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">强制失败</text>
+  <rect x="534" y="1370" width="134" height="44" rx="16" fill="#F3E8FF"/>
+  <text x="601" y="1399" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">属性面板</text>
+</svg>

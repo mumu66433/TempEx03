@@ -6,32 +6,35 @@
   <rect x="70" y="180" width="1460" height="950" rx="32" fill="#FFF9F0" stroke="#D7C5AA" stroke-width="2"/>
   <text x="110" y="240" fill="#1F2937" font-size="28" font-weight="700">颜色 Token</text>
   
-    <rect x="110" y="270" width="110" height="72" rx="18" fill="#17314A"/>
-    <text x="165" y="365" fill="#1F2937" font-size="18" text-anchor="middle">主背景</text>
+    <rect x="110" y="270" width="96" height="72" rx="18" fill="#17314A"/>
+    <text x="158" y="365" fill="#1F2937" font-size="18" text-anchor="middle">主背景</text>
   
-    <rect x="260" y="270" width="110" height="72" rx="18" fill="#F4C56A"/>
-    <text x="315" y="365" fill="#1F2937" font-size="18" text-anchor="middle">强调金</text>
+    <rect x="246" y="270" width="96" height="72" rx="18" fill="#F4C56A"/>
+    <text x="294" y="365" fill="#1F2937" font-size="18" text-anchor="middle">强调金</text>
   
-    <rect x="410" y="270" width="110" height="72" rx="18" fill="undefined"/>
-    <text x="465" y="365" fill="#1F2937" font-size="18" text-anchor="middle">辅助青</text>
+    <rect x="382" y="270" width="96" height="72" rx="18" fill="#7FD6C2"/>
+    <text x="430" y="365" fill="#1F2937" font-size="18" text-anchor="middle">辅助青</text>
   
-    <rect x="560" y="270" width="110" height="72" rx="18" fill="#5CBF75"/>
-    <text x="615" y="365" fill="#1F2937" font-size="18" text-anchor="middle">通关绿</text>
+    <rect x="518" y="270" width="96" height="72" rx="18" fill="#5CBF75"/>
+    <text x="566" y="365" fill="#1F2937" font-size="18" text-anchor="middle">通关绿</text>
   
-    <rect x="710" y="270" width="110" height="72" rx="18" fill="#D96B6B"/>
-    <text x="765" y="365" fill="#1F2937" font-size="18" text-anchor="middle">失败红</text>
+    <rect x="654" y="270" width="96" height="72" rx="18" fill="#D96B6B"/>
+    <text x="702" y="365" fill="#1F2937" font-size="18" text-anchor="middle">失败红</text>
   
-    <rect x="860" y="270" width="110" height="72" rx="18" fill="#9AA4B2"/>
-    <text x="915" y="365" fill="#1F2937" font-size="18" text-anchor="middle">N</text>
+    <rect x="790" y="270" width="96" height="72" rx="18" fill="#9AA4B2"/>
+    <text x="838" y="365" fill="#1F2937" font-size="18" text-anchor="middle">N</text>
   
-    <rect x="1010" y="270" width="110" height="72" rx="18" fill="#4C89D9"/>
-    <text x="1065" y="365" fill="#1F2937" font-size="18" text-anchor="middle">R</text>
+    <rect x="926" y="270" width="96" height="72" rx="18" fill="#4C89D9"/>
+    <text x="974" y="365" fill="#1F2937" font-size="18" text-anchor="middle">R</text>
   
-    <rect x="1160" y="270" width="110" height="72" rx="18" fill="#8A63D2"/>
-    <text x="1215" y="365" fill="#1F2937" font-size="18" text-anchor="middle">SR</text>
+    <rect x="1062" y="270" width="96" height="72" rx="18" fill="#8A63D2"/>
+    <text x="1110" y="365" fill="#1F2937" font-size="18" text-anchor="middle">SR</text>
   
-    <rect x="1310" y="270" width="110" height="72" rx="18" fill="#D99A3D"/>
-    <text x="1365" y="365" fill="#1F2937" font-size="18" text-anchor="middle">SSR</text>
+    <rect x="1198" y="270" width="96" height="72" rx="18" fill="#D99A3D"/>
+    <text x="1246" y="365" fill="#1F2937" font-size="18" text-anchor="middle">SSR</text>
+
+    <rect x="1334" y="270" width="96" height="72" rx="18" fill="#D94F5C"/>
+    <text x="1382" y="365" fill="#1F2937" font-size="18" text-anchor="middle">UR</text>
   
   <text x="110" y="446" fill="#1F2937" font-size="28" font-weight="700">按钮样式</text>
   <g transform="translate(110,480)">
@@ -70,18 +73,18 @@
   <rect x="840" y="720" width="620" height="320" rx="28" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
   <text x="872" y="780" fill="#1F2937" font-size="28" font-weight="700">底部导航样式</text>
   
-  <rect x="872" y="1460" width="520" height="120" rx="30" fill="#E9DFC9" stroke="#D7C5AA" stroke-width="2"/>
+  <rect x="890" y="840" width="520" height="120" rx="30" fill="#E9DFC9" stroke="#D7C5AA" stroke-width="2"/>
   
-      <circle cx="692" cy="1520" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
-      <text x="82" y="1528" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">章节</text>
+      <circle cx="960" cy="890" r="34" fill="#F4C56A" stroke="#B78832" stroke-width="2"/>
+      <text x="960" y="940" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">章节</text>
     
-      <circle cx="860" cy="1520" r="34" fill="#F4C56A" stroke="#B78832" stroke-width="2"/>
-      <text x="250" y="1528" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">功法</text>
+      <circle cx="1088" cy="890" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
+      <text x="1088" y="940" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">功法</text>
     
-      <circle cx="1028" cy="1520" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
-      <text x="418" y="1528" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">角色</text>
+      <circle cx="1216" cy="890" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
+      <text x="1216" y="940" fill="#98A2B3" font-size="18" font-weight="500" text-anchor="middle">角色</text>
     
-      <circle cx="1196" cy="1520" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
-      <text x="586" y="1528" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">商城</text>
+      <circle cx="1344" cy="890" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
+      <text x="1344" y="940" fill="#98A2B3" font-size="18" font-weight="500" text-anchor="middle">商城</text>
     
 </svg>
