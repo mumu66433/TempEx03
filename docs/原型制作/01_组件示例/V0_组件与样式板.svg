@@ -73,18 +73,18 @@
   <rect x="840" y="720" width="620" height="320" rx="28" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
   <text x="872" y="780" fill="#1F2937" font-size="28" font-weight="700">底部导航样式</text>
   
-  <rect x="872" y="1460" width="520" height="120" rx="30" fill="#E9DFC9" stroke="#D7C5AA" stroke-width="2"/>
+  <rect x="890" y="840" width="520" height="120" rx="30" fill="#E9DFC9" stroke="#D7C5AA" stroke-width="2"/>
   
-      <circle cx="692" cy="1520" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
-      <text x="82" y="1528" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">章节</text>
+      <circle cx="960" cy="890" r="34" fill="#F4C56A" stroke="#B78832" stroke-width="2"/>
+      <text x="960" y="940" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">章节</text>
     
-      <circle cx="860" cy="1520" r="34" fill="#F4C56A" stroke="#B78832" stroke-width="2"/>
-      <text x="250" y="1528" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">功法</text>
+      <circle cx="1088" cy="890" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
+      <text x="1088" y="940" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">功法</text>
     
-      <circle cx="1028" cy="1520" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
-      <text x="418" y="1528" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">角色</text>
+      <circle cx="1216" cy="890" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
+      <text x="1216" y="940" fill="#98A2B3" font-size="18" font-weight="500" text-anchor="middle">角色</text>
     
-      <circle cx="1196" cy="1520" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
-      <text x="586" y="1528" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">商城</text>
+      <circle cx="1344" cy="890" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
+      <text x="1344" y="940" fill="#98A2B3" font-size="18" font-weight="500" text-anchor="middle">商城</text>
     
 </svg>
