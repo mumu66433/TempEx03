@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="750" height="1624" viewBox="0 0 750 1624" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="750" y2="1624" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#13233C"/>
+      <stop offset="1" stop-color="#1F4F78"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0F172A" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  <rect width="750" height="1624" fill="url(#bg)"/>
+  <text x="375" y="82" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">功法状态稿</text>
+  <text x="375" y="124" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">未解锁 / 可升级 / 满星 / 品质筛选 / 详情状态</text>
+
+  <rect x="42" y="166" width="666" height="114" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2" filter="url(#shadow)"/>
+  <text x="70" y="216" fill="#1F2937" font-size="28" font-weight="700">品质筛选</text>
+  <rect x="250" y="186" width="78" height="44" rx="16" fill="#F4C56A"/>
+  <text x="289" y="215" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">全部</text>
+  <rect x="346" y="186" width="64" height="44" rx="16" fill="#9AA4B2"/>
+  <text x="378" y="215" fill="#FFFFFF" font-size="20" font-weight="700" text-anchor="middle">N</text>
+  <rect x="426" y="186" width="64" height="44" rx="16" fill="#4C89D9"/>
+  <text x="458" y="215" fill="#FFFFFF" font-size="20" font-weight="700" text-anchor="middle">R</text>
+  <rect x="506" y="186" width="70" height="44" rx="16" fill="#8A63D2"/>
+  <text x="541" y="215" fill="#FFFFFF" font-size="20" font-weight="700" text-anchor="middle">SR</text>
+  <text x="70" y="252" fill="#667085" font-size="20">V0 列表默认覆盖 N / R / SR；SSR / UR 仅保留品质色规范</text>
+
+  <rect x="42" y="314" width="318" height="250" rx="24" fill="#FFF9F0" stroke="#8A63D2" stroke-width="3"/>
+  <rect x="70" y="344" width="74" height="36" rx="14" fill="#8A63D2"/>
+  <text x="107" y="368" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">SR</text>
+  <rect x="238" y="344" width="90" height="36" rx="14" fill="#FFE7A8"/>
+  <text x="283" y="368" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">可升级</text>
+  <text x="70" y="420" fill="#1F2937" font-size="30" font-weight="700">太极真意</text>
+  <text x="70" y="456" fill="#667085" font-size="20">武当 / 内功 · 局外等级 1</text>
+  <rect x="70" y="492" width="250" height="16" rx="8" fill="#E8E1D5"/>
+  <rect x="70" y="492" width="196" height="16" rx="8" fill="#8A63D2"/>
+  <text x="70" y="536" fill="#667085" font-size="20">经验 80 / 100，点击详情可升级</text>
+
+  <rect x="390" y="314" width="318" height="250" rx="24" fill="#F1EEE7" stroke="#D8CBB3" stroke-width="2" opacity="0.92"/>
+  <rect x="418" y="344" width="74" height="36" rx="14" fill="#4C89D9" opacity="0.55"/>
+  <text x="455" y="368" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">R</text>
+  <rect x="576" y="344" width="100" height="36" rx="14" fill="#E8E1D5"/>
+  <text x="626" y="368" fill="#667085" font-size="18" font-weight="700" text-anchor="middle">未解锁</text>
+  <text x="418" y="420" fill="#98A2B3" font-size="30" font-weight="700">未知功法</text>
+  <text x="418" y="456" fill="#98A2B3" font-size="20">唐门 / 奇门 · 第5章解锁</text>
+  <text x="418" y="514" fill="#667085" font-size="20">不可升级，不进入三选一随机池</text>
+
+  <rect x="42" y="596" width="318" height="250" rx="24" fill="#FFF9F0" stroke="#D99A3D" stroke-width="3"/>
+  <rect x="70" y="626" width="74" height="36" rx="14" fill="#4C89D9"/>
+  <text x="107" y="650" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">R</text>
+  <rect x="244" y="626" width="84" height="36" rx="14" fill="#5CBF75"/>
+  <text x="286" y="650" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">满星</text>
+  <text x="70" y="702" fill="#1F2937" font-size="30" font-weight="700">疾风剑诀</text>
+  <text x="70" y="738" fill="#667085" font-size="20">华山 / 剑法 · 局内 3 星</text>
+  <text x="70" y="796" fill="#667085" font-size="20">同局随机池移除；详情按钮置灰</text>
+
+  <rect x="390" y="596" width="318" height="250" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
+  <text x="418" y="646" fill="#1F2937" font-size="28" font-weight="700">标签状态</text>
+  <rect x="418" y="684" width="86" height="36" rx="12" fill="#E8F2FF"/>
+  <text x="461" y="708" fill="#1F2937" font-size="18" text-anchor="middle">华山</text>
+  <rect x="516" y="684" width="86" height="36" rx="12" fill="#F3E8FF"/>
+  <text x="559" y="708" fill="#1F2937" font-size="18" text-anchor="middle">剑法</text>
+  <rect x="418" y="740" width="86" height="36" rx="12" fill="#E8E1D5"/>
+  <text x="461" y="764" fill="#667085" font-size="18" text-anchor="middle">锁定</text>
+  <text x="418" y="812" fill="#667085" font-size="20">标签用于筛选与羁绊提示，禁用态降透明度</text>
+
+  <rect x="42" y="878" width="666" height="410" rx="28" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="78" y="914" width="120" height="48" rx="16" fill="#8A63D2"/>
+  <text x="138" y="945" fill="#FFFFFF" font-size="20" font-weight="700" text-anchor="middle">SR</text>
+  <text x="78" y="1020" fill="#1F2937" font-size="42" font-weight="700">太极真意</text>
+  <rect x="78" y="1046" width="94" height="36" rx="12" fill="#E8F2FF"/>
+  <text x="125" y="1070" fill="#1F2937" font-size="18" text-anchor="middle">武当</text>
+  <rect x="186" y="1046" width="94" height="36" rx="12" fill="#F3E8FF"/>
+  <text x="233" y="1070" fill="#1F2937" font-size="18" text-anchor="middle">内功</text>
+  <text x="78" y="1134" fill="#1F2937" font-size="26" font-weight="700">基础效果</text>
+  <text x="78" y="1172" fill="#667085" font-size="21">生命 +15%，受击后概率回击</text>
+  <text x="78" y="1230" fill="#1F2937" font-size="26" font-weight="700">升星 / 羁绊</text>
+  <text x="78" y="1268" fill="#667085" font-size="21">2星解锁回击；武当 / 内功数量触发羁绊</text>
+  <rect x="444" y="1138" width="188" height="64" rx="22" fill="#F4C56A" stroke="#B78832" stroke-width="2"/>
+  <text x="538" y="1179" fill="#1F2937" font-size="24" font-weight="700" text-anchor="middle">升级</text>
+  <rect x="444" y="1222" width="188" height="64" rx="22" fill="#FFF8EE" stroke="#D8CBB3" stroke-width="2"/>
+  <text x="538" y="1263" fill="#1F2937" font-size="24" font-weight="700" text-anchor="middle">关闭</text>
+
+  <rect x="42" y="1320" width="666" height="136" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
+  <text x="72" y="1368" fill="#1F2937" font-size="28" font-weight="700">详情禁用态</text>
+  <text x="72" y="1408" fill="#667085" font-size="21">未解锁：只展示解锁章节；满星：升级按钮置灰为“已满星”</text>
+</svg>
