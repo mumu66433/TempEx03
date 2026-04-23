@@ -1,28 +1,21 @@
-# 当前协作状态
+# 状态 - PM / 审核管理代理
 
 ## 更新规则
 
-- 本文件用于在清理上下文、重置对话或重新打开代理对话前记录协作状态。
-- 任一代理被要求清理上下文前，必须先更新本文件。
-- 如果代理管理了子代理，必须先要求子代理更新各自状态，再由管理代理汇总更新本文件。
+- 本文件只记录 PM / 审核管理代理的协作状态。
+- PM / 审核管理代理被要求清理上下文、重置对话或开启新对话前，必须先更新本文件。
+- 如果 PM / 审核管理代理管理了子代理，必须先要求子代理更新各自状态文件，再更新本文件。
 - 新对话开始后，必须读取本文件，再结合 Git 实际状态恢复工作。
 
-## 当前主控状态
+## 当前状态
 
 - 当前日期：2026-04-23
-- 主控角色：PM / 审核管理代理
-- 主控工作树：`D:\Doc\codex\TempEx03`
-- 主控分支：`dev`
-- 主控远端分支：`origin/dev`
-- 写入本文件前的 `dev` 基线提交：`6e6b9a2 合并UI设计分支到 dev`
+- 角色：PM / 审核管理代理
+- 工作树：`D:\Doc\codex\TempEx03`
+- 分支：`dev`
+- 远端分支：`origin/dev`
+- 写入本文件前的 `dev` 基线提交：`c4cdf33 增加上下文清理前协作状态记录规则`
 - 恢复上下文时如需确认最新状态，应以 `git fetch` 后的 Git 实际状态为准。
-
-## 工作树与分支
-
-- PM / 审核管理：`D:\Doc\codex\TempEx03`，分支 `dev`，远端 `origin/dev`
-- 策划设计：`D:\Doc\codex\TempEx03-planning`，分支 `design/planning`，远端 `origin/design/planning`
-- UI 设计：`D:\Doc\codex\TempEx03-ui`，分支 `design/ui`，远端 `origin/design/ui`
-- 程序制作：`D:\Doc\codex\TempEx03-program`，分支 `feature/program`，远端 `origin/feature/program`
 
 ## 已派生子代理
 
