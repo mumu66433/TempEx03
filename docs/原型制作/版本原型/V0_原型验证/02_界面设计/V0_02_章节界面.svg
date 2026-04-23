@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="750" height="1624" viewBox="0 0 750 1624" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="750" y2="1624" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#102033"/>
+      <stop offset="0.45" stop-color="#17314A"/>
+      <stop offset="1" stop-color="#2B5C7A"/>
+    </linearGradient>
+    <linearGradient id="goldBtn" x1="0" y1="0" x2="0" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE4A0"/>
+      <stop offset="1" stop-color="#F4C56A"/>
+    </linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#09111D" flood-opacity="0.24"/>
+    </filter>
+  </defs>
+  <rect width="750" height="1624" fill="url(#bg)"/>
+  <rect x="24" y="24" width="702" height="1576" rx="36" stroke="rgba(255,255,255,0.18)"/>
+  <text x="375" y="86" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">主界面</text>
+  <text x="375" y="126" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">默认落点页，承接章节推进与底部导航</text>
+  
+  <rect x="32" y="160" width="686" height="180" rx="32" fill="rgba(255,249,240,0.94)" stroke="#D7C5AA" stroke-width="2"/>
+  <circle cx="116" cy="250" r="46" fill="#F4C56A"/><text x="116" y="262" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">铁</text>
+  <text x="182" y="230" fill="#1F2937" font-size="30" font-weight="700">铁匠之子</text>
+  <text x="182" y="272" fill="#667085" font-size="22">当前战力：1280</text>
+  <rect x="542" y="210" width="132" height="52" rx="18" fill="#FFE7A8"/><text x="608" y="244" fill="#1F2937" font-size="22" font-weight="700" text-anchor="middle">V0 原型</text>
+  <rect x="32" y="380" width="686" height="920" rx="36" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="72" y="450" fill="#1F2937" font-size="34" font-weight="700">章节选择</text>
+  <text x="72" y="492" fill="#667085" font-size="22">V0 开放 12 章，每章固定 5 层</text>
+  
+  <rect x="72" y="540" width="606" height="250" rx="28" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  <rect x="96" y="562" width="92" height="40" rx="16" fill="#FFE7A8"/><text x="142" y="589" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">当前章节</text>
+  <text x="100" y="636" fill="#1F2937" font-size="30" font-weight="700">第1章 银杏村</text>
+  <text x="100" y="684" fill="#667085" font-size="22">5 层 / 9 波 / 推荐战力 100</text>
+  <rect x="408" y="590" width="220" height="150" rx="24" fill="#EDE3D1" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="518" y="675" fill="#1F2937" font-size="34" font-weight="700" text-anchor="middle">宗门外围</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="94" y="814" width="562" height="84" rx="22" fill="url(#goldBtn)" stroke="#B78832" stroke-width="2"/>
+  </g>
+  <text x="375" y="866" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">开始战斗</text>
+  
+  <rect x="72" y="932" width="606" height="140" rx="28" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  <rect x="96" y="954" width="92" height="40" rx="16" fill="#FFE7A8"/><text x="142" y="981" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">已解锁</text>
+  <text x="100" y="1028" fill="#1F2937" font-size="30" font-weight="700">第2章 破庙外道</text>
+  <text x="100" y="1076" fill="#667085" font-size="22">已解锁，推荐战力 120</text>
+  
+  <rect x="72" y="1094" width="606" height="140" rx="28" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  <rect x="96" y="1116" width="92" height="40" rx="16" fill="#FFE7A8"/><text x="142" y="1143" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">已解锁</text>
+  <text x="100" y="1190" fill="#1F2937" font-size="30" font-weight="700">第3章 少林山门</text>
+  <text x="100" y="1238" fill="#667085" font-size="22">已解锁，推荐战力 160</text>
+  
+  <rect x="24" y="1460" width="702" height="120" rx="30" fill="#E9DFC9" stroke="#D7C5AA" stroke-width="2"/>
+  
+      <circle cx="82" cy="1520" r="34" fill="#F4C56A" stroke="#B78832" stroke-width="2"/>
+      <text x="82" y="1528" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">章节</text>
+    
+      <circle cx="250" cy="1520" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
+      <text x="250" y="1528" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">功法</text>
+    
+      <circle cx="418" cy="1520" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
+      <text x="418" y="1528" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">角色</text>
+    
+      <circle cx="586" cy="1520" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
+      <text x="586" y="1528" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">商城</text>
+    
+  
+</svg>

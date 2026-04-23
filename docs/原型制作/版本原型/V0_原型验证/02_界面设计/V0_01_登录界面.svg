@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="750" height="1624" viewBox="0 0 750 1624" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="750" y2="1624" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#102033"/>
+      <stop offset="0.45" stop-color="#17314A"/>
+      <stop offset="1" stop-color="#2B5C7A"/>
+    </linearGradient>
+    <linearGradient id="goldBtn" x1="0" y1="0" x2="0" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE4A0"/>
+      <stop offset="1" stop-color="#F4C56A"/>
+    </linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#09111D" flood-opacity="0.24"/>
+    </filter>
+  </defs>
+  <rect width="750" height="1624" fill="url(#bg)"/>
+  <rect x="24" y="24" width="702" height="1576" rx="36" stroke="rgba(255,255,255,0.18)"/>
+  <text x="375" y="86" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">游戏入口</text>
+  <text x="375" y="126" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">V0 仅承接登录后的入口，不新增复杂活动入口</text>
+  
+  <text x="375" y="248" fill="rgba(255,255,255,0.78)" font-size="26" text-anchor="middle">江湖风云起，一剑定乾坤</text>
+  <circle cx="375" cy="426" r="116" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>
+  <text x="375" y="446" fill="#FFFFFF" font-size="88" font-weight="700" text-anchor="middle">剑</text>
+  <text x="375" y="690" fill="#FFFFFF" font-size="84" font-weight="700" text-anchor="middle">剑侠风云</text>
+  <text x="375" y="742" fill="rgba(255,255,255,0.78)" font-size="28" text-anchor="middle">Roguelike 武侠构筑原型</text>
+  <rect x="70" y="1130" width="610" height="250" rx="32" fill="rgba(255,248,238,0.94)" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="112" y="1194" fill="#1F2937" font-size="26" font-weight="700">当前账号</text>
+  <text x="112" y="1238" fill="#667085" font-size="24">paoyou_001</text>
+  <text x="112" y="1296" fill="#667085" font-size="22">V0 原型阶段沿用现有账号登录流程</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="112" y="1308" width="526" height="88" rx="22" fill="url(#goldBtn)" stroke="#B78832" stroke-width="2"/>
+  </g>
+  <text x="375" y="1362" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">进入游戏</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="112" y="1410" width="526" height="72" rx="22" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  </g>
+  <text x="375" y="1456" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">切换账号</text>
+  
+</svg>

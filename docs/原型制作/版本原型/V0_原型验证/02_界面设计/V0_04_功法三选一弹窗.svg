@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="750" height="1624" viewBox="0 0 750 1624" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="750" y2="1624" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#102033"/>
+      <stop offset="0.45" stop-color="#17314A"/>
+      <stop offset="1" stop-color="#2B5C7A"/>
+    </linearGradient>
+    <linearGradient id="goldBtn" x1="0" y1="0" x2="0" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE4A0"/>
+      <stop offset="1" stop-color="#F4C56A"/>
+    </linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#09111D" flood-opacity="0.24"/>
+    </filter>
+  </defs>
+  <rect width="750" height="1624" fill="url(#bg)"/>
+  <rect x="24" y="24" width="702" height="1576" rx="36" stroke="rgba(255,255,255,0.18)"/>
+  <text x="375" y="86" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">功法选择</text>
+  <text x="375" y="126" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">原型阶段默认单屏展示 3 张卡，避免滚动</text>
+  
+  <rect x="0" y="0" width="750" height="1624" fill="rgba(9,17,29,0.42)"/>
+  <rect x="42" y="180" width="666" height="1180" rx="36" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="375" y="266" fill="#1F2937" font-size="40" font-weight="700" text-anchor="middle">功法三选一</text>
+  <text x="375" y="308" fill="#667085" font-size="22" text-anchor="middle">第2层通关，选择 1 本功法加入本局构筑</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="76" y="380" width="598" height="218" rx="26" fill="#FFF8EE" stroke="#9AA4B2" stroke-width="4"/>
+  </g>
+  <rect x="98" y="402" width="78" height="38" rx="14" fill="#9AA4B2"/>
+  <text x="137" y="428" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">N</text>
+  <text x="100" y="476" fill="#1F2937" font-size="28" font-weight="700">罗汉拳法</text>
+  <rect x="100" y="498" width="86" height="34" rx="12" fill="#E8F2FF"/>
+  <text x="143" y="521" fill="#1F2937" font-size="16" text-anchor="middle">少林</text>
+  <rect x="196" y="498" width="86" height="34" rx="12" fill="#F3E8FF"/>
+  <text x="239" y="521" fill="#1F2937" font-size="16" text-anchor="middle">拳掌</text>
+  <text x="100" y="572" fill="#667085" font-size="20">稳定近战输出，适合新手起手</text>
+  <rect x="100" y="528" width="550" height="18" rx="9" fill="#E8E1D5"/>
+  <rect x="100" y="528" width="264" height="18" rx="9" fill="#9AA4B2"/>
+  <text x="100" y="512" fill="#667085" font-size="18">局外等级 1 / 局内 1 星</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="76" y="630" width="598" height="218" rx="26" fill="#FFF8EE" stroke="#4C89D9" stroke-width="4"/>
+  </g>
+  <rect x="98" y="652" width="78" height="38" rx="14" fill="#4C89D9"/>
+  <text x="137" y="678" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">R</text>
+  <text x="100" y="726" fill="#1F2937" font-size="28" font-weight="700">回春诀</text>
+  <rect x="100" y="748" width="86" height="34" rx="12" fill="#E8F2FF"/>
+  <text x="143" y="771" fill="#1F2937" font-size="16" text-anchor="middle">峨眉</text>
+  <rect x="196" y="748" width="86" height="34" rx="12" fill="#F3E8FF"/>
+  <text x="239" y="771" fill="#1F2937" font-size="16" text-anchor="middle">医术</text>
+  <text x="100" y="822" fill="#667085" font-size="20">低血量时恢复更强，提升容错</text>
+  <rect x="100" y="778" width="550" height="18" rx="9" fill="#E8E1D5"/>
+  <rect x="100" y="778" width="264" height="18" rx="9" fill="#4C89D9"/>
+  <text x="100" y="762" fill="#667085" font-size="18">局外等级 1 / 局内 1 星</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="76" y="880" width="598" height="218" rx="26" fill="#FFF8EE" stroke="#4C89D9" stroke-width="4"/>
+  </g>
+  <rect x="98" y="902" width="78" height="38" rx="14" fill="#4C89D9"/>
+  <text x="137" y="928" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">R</text>
+  <text x="100" y="976" fill="#1F2937" font-size="28" font-weight="700">追魂针</text>
+  <rect x="100" y="998" width="86" height="34" rx="12" fill="#E8F2FF"/>
+  <text x="143" y="1021" fill="#1F2937" font-size="16" text-anchor="middle">唐门</text>
+  <rect x="196" y="998" width="86" height="34" rx="12" fill="#F3E8FF"/>
+  <text x="239" y="1021" fill="#1F2937" font-size="16" text-anchor="middle">奇门</text>
+  <text x="100" y="1072" fill="#667085" font-size="20">命中附带中毒，适合异常流</text>
+  <rect x="100" y="1028" width="550" height="18" rx="9" fill="#E8E1D5"/>
+  <rect x="100" y="1028" width="264" height="18" rx="9" fill="#4C89D9"/>
+  <text x="100" y="1012" fill="#667085" font-size="18">局外等级 1 / 局内 1 星</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="92" y="1146" width="260" height="84" rx="22" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  </g>
+  <text x="222" y="1198" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">刷新一次</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="388" y="1146" width="260" height="84" rx="22" fill="url(#goldBtn)" stroke="#B78832" stroke-width="2"/>
+  </g>
+  <text x="518" y="1198" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">确认选择</text>
+  <text x="375" y="1286" fill="#667085" font-size="20" text-anchor="middle">已获得 3 / 20 本不同名功法</text>
+  
+</svg>

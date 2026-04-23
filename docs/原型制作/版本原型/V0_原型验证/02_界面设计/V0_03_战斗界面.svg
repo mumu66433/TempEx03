@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="750" height="1624" viewBox="0 0 750 1624" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="750" y2="1624" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#102033"/>
+      <stop offset="0.45" stop-color="#17314A"/>
+      <stop offset="1" stop-color="#2B5C7A"/>
+    </linearGradient>
+    <linearGradient id="goldBtn" x1="0" y1="0" x2="0" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE4A0"/>
+      <stop offset="1" stop-color="#F4C56A"/>
+    </linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#09111D" flood-opacity="0.24"/>
+    </filter>
+  </defs>
+  <rect width="750" height="1624" fill="url(#bg)"/>
+  <rect x="24" y="24" width="702" height="1576" rx="36" stroke="rgba(255,255,255,0.18)"/>
+  <text x="375" y="86" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">战斗界面</text>
+  <text x="375" y="126" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">中心区域留给战斗表现，信息集中在顶部和底部</text>
+  
+  <rect x="32" y="146" width="686" height="148" rx="30" fill="rgba(255,248,238,0.94)" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="70" y="204" fill="#1F2937" font-size="26" font-weight="700">第1章 银杏村</text>
+  <text x="70" y="242" fill="#667085" font-size="22">第2层 第1波 / 共2波</text>
+  <rect x="70" y="260" width="258" height="14" rx="7" fill="#E4DACC"/><rect x="70" y="260" width="182" height="14" rx="7" fill="#5CBF75"/>
+  <text x="372" y="204" fill="#1F2937" font-size="26" font-weight="700">敌方</text>
+  <rect x="420" y="260" width="258" height="14" rx="7" fill="#E4DACC"/><rect x="420" y="260" width="212" height="14" rx="7" fill="#D96B6B"/>
+  <text x="70" y="1160" fill="#FFFFFF" font-size="28" font-weight="700">自动战斗中</text>
+  <rect x="56" y="360" width="210" height="460" rx="30" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)"/>
+  <text x="160" y="610" fill="#FFFFFF" font-size="42" font-weight="700" text-anchor="middle">我方角色</text>
+  <rect x="484" y="290" width="182" height="182" rx="28" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.18)"/>
+  <text x="575" y="394" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">鸡</text>
+  <rect x="430" y="560" width="236" height="236" rx="30" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)"/>
+  <text x="548" y="688" fill="#FFFFFF" font-size="36" font-weight="700" text-anchor="middle">下波预留</text>
+  <rect x="32" y="1220" width="686" height="200" rx="34" fill="rgba(255,248,238,0.94)" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="72" y="1280" fill="#1F2937" font-size="28" font-weight="700">本局构筑</text>
+  <rect x="72" y="1310" width="116" height="72" rx="18" fill="#FFE7A8"/><text x="130" y="1356" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">罗汉拳法 1星</text>
+  <rect x="206" y="1310" width="116" height="72" rx="18" fill="#E8F2FF"/><text x="264" y="1356" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">轻身术 1星</text>
+  <rect x="340" y="1310" width="116" height="72" rx="18" fill="#F3E8FF"/><text x="398" y="1356" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">金钟罩 2星</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="540" y="1306" width="138" height="74" rx="22" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  </g>
+  <text x="609" y="1353" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">暂停</text>
+  
+</svg>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="750" height="1624" viewBox="0 0 750 1624" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="750" y2="1624" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#102033"/>
+      <stop offset="0.45" stop-color="#17314A"/>
+      <stop offset="1" stop-color="#2B5C7A"/>
+    </linearGradient>
+    <linearGradient id="goldBtn" x1="0" y1="0" x2="0" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE4A0"/>
+      <stop offset="1" stop-color="#F4C56A"/>
+    </linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#09111D" flood-opacity="0.24"/>
+    </filter>
+  </defs>
+  <rect width="750" height="1624" fill="url(#bg)"/>
+  <rect x="24" y="24" width="702" height="1576" rx="36" stroke="rgba(255,255,255,0.18)"/>
+  <text x="375" y="86" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">功法界面</text>
+  <text x="375" y="126" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">V0 保留图鉴与查看功能，不做复杂养成树</text>
+  
+  <rect x="32" y="160" width="686" height="146" rx="30" fill="rgba(255,248,238,0.94)" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="72" y="216" fill="#1F2937" font-size="34" font-weight="700">功法图鉴</text>
+  <text x="72" y="260" fill="#667085" font-size="22">查看已解锁功法与局外升级信息</text>
+  <rect x="542" y="198" width="136" height="54" rx="18" fill="#FFE7A8"/><text x="610" y="233" fill="#1F2937" font-size="22" font-weight="700" text-anchor="middle">24 / 24</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="52" y="356" width="310" height="236" rx="26" fill="#FFF8EE" stroke="#9AA4B2" stroke-width="4"/>
+  </g>
+  <rect x="74" y="378" width="78" height="38" rx="14" fill="#9AA4B2"/>
+  <text x="113" y="404" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">N</text>
+  <text x="76" y="452" fill="#1F2937" font-size="28" font-weight="700">轻身术</text>
+  <rect x="76" y="474" width="86" height="34" rx="12" fill="#E8F2FF"/>
+  <text x="119" y="497" fill="#1F2937" font-size="16" text-anchor="middle">通用</text>
+  <rect x="172" y="474" width="86" height="34" rx="12" fill="#F3E8FF"/>
+  <text x="215" y="497" fill="#1F2937" font-size="16" text-anchor="middle">轻功</text>
+  <text x="76" y="548" fill="#667085" font-size="20">提升生命并提高闪避手感</text>
+  <rect x="76" y="522" width="262" height="18" rx="9" fill="#E8E1D5"/>
+  <rect x="76" y="522" width="126" height="18" rx="9" fill="#9AA4B2"/>
+  <text x="76" y="506" fill="#667085" font-size="18">局外等级 1 / 局内 1 星</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="388" y="356" width="310" height="236" rx="26" fill="#FFF8EE" stroke="#4C89D9" stroke-width="4"/>
+  </g>
+  <rect x="410" y="378" width="78" height="38" rx="14" fill="#4C89D9"/>
+  <text x="449" y="404" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">R</text>
+  <text x="412" y="452" fill="#1F2937" font-size="28" font-weight="700">疾风剑诀</text>
+  <rect x="412" y="474" width="86" height="34" rx="12" fill="#E8F2FF"/>
+  <text x="455" y="497" fill="#1F2937" font-size="16" text-anchor="middle">华山</text>
+  <rect x="508" y="474" width="86" height="34" rx="12" fill="#F3E8FF"/>
+  <text x="551" y="497" fill="#1F2937" font-size="16" text-anchor="middle">剑法</text>
+  <text x="412" y="548" fill="#667085" font-size="20">提升攻击和暴击收益</text>
+  <rect x="412" y="522" width="262" height="18" rx="9" fill="#E8E1D5"/>
+  <rect x="412" y="522" width="126" height="18" rx="9" fill="#4C89D9"/>
+  <text x="412" y="506" fill="#667085" font-size="18">局外等级 1 / 局内 1 星</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="52" y="624" width="310" height="236" rx="26" fill="#FFF8EE" stroke="#8A63D2" stroke-width="4"/>
+  </g>
+  <rect x="74" y="646" width="78" height="38" rx="14" fill="#8A63D2"/>
+  <text x="113" y="672" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">SR</text>
+  <text x="76" y="720" fill="#1F2937" font-size="28" font-weight="700">太极真意</text>
+  <rect x="76" y="742" width="86" height="34" rx="12" fill="#E8F2FF"/>
+  <text x="119" y="765" fill="#1F2937" font-size="16" text-anchor="middle">武当</text>
+  <rect x="172" y="742" width="86" height="34" rx="12" fill="#F3E8FF"/>
+  <text x="215" y="765" fill="#1F2937" font-size="16" text-anchor="middle">内功</text>
+  <text x="76" y="816" fill="#667085" font-size="20">受击后有概率回击</text>
+  <rect x="76" y="790" width="262" height="18" rx="9" fill="#E8E1D5"/>
+  <rect x="76" y="790" width="126" height="18" rx="9" fill="#8A63D2"/>
+  <text x="76" y="774" fill="#667085" font-size="18">局外等级 1 / 局内 1 星</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="388" y="624" width="310" height="236" rx="26" fill="#FFF8EE" stroke="#4C89D9" stroke-width="4"/>
+  </g>
+  <rect x="410" y="646" width="78" height="38" rx="14" fill="#4C89D9"/>
+  <text x="449" y="672" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">R</text>
+  <text x="412" y="720" fill="#1F2937" font-size="28" font-weight="700">追魂针</text>
+  <rect x="412" y="742" width="86" height="34" rx="12" fill="#E8F2FF"/>
+  <text x="455" y="765" fill="#1F2937" font-size="16" text-anchor="middle">唐门</text>
+  <rect x="508" y="742" width="86" height="34" rx="12" fill="#F3E8FF"/>
+  <text x="551" y="765" fill="#1F2937" font-size="16" text-anchor="middle">奇门</text>
+  <text x="412" y="816" fill="#667085" font-size="20">命中后附带中毒</text>
+  <rect x="412" y="790" width="262" height="18" rx="9" fill="#E8E1D5"/>
+  <rect x="412" y="790" width="126" height="18" rx="9" fill="#4C89D9"/>
+  <text x="412" y="774" fill="#667085" font-size="18">局外等级 1 / 局内 1 星</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="52" y="892" width="310" height="236" rx="26" fill="#FFF8EE" stroke="#9AA4B2" stroke-width="4"/>
+  </g>
+  <rect x="74" y="914" width="78" height="38" rx="14" fill="#9AA4B2"/>
+  <text x="113" y="940" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">N</text>
+  <text x="76" y="988" fill="#1F2937" font-size="28" font-weight="700">金钟罩</text>
+  <rect x="76" y="1010" width="86" height="34" rx="12" fill="#E8F2FF"/>
+  <text x="119" y="1033" fill="#1F2937" font-size="16" text-anchor="middle">少林</text>
+  <rect x="172" y="1010" width="86" height="34" rx="12" fill="#F3E8FF"/>
+  <text x="215" y="1033" fill="#1F2937" font-size="16" text-anchor="middle">外功</text>
+  <text x="76" y="1084" fill="#667085" font-size="20">提升生命，2星后获得减伤</text>
+  <rect x="76" y="1058" width="262" height="18" rx="9" fill="#E8E1D5"/>
+  <rect x="76" y="1058" width="126" height="18" rx="9" fill="#9AA4B2"/>
+  <text x="76" y="1042" fill="#667085" font-size="18">局外等级 1 / 局内 1 星</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="388" y="892" width="310" height="236" rx="26" fill="#FFF8EE" stroke="#8A63D2" stroke-width="4"/>
+  </g>
+  <rect x="410" y="914" width="78" height="38" rx="14" fill="#8A63D2"/>
+  <text x="449" y="940" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">SR</text>
+  <text x="412" y="988" fill="#1F2937" font-size="28" font-weight="700">八卦阵</text>
+  <rect x="412" y="1010" width="86" height="34" rx="12" fill="#E8F2FF"/>
+  <text x="455" y="1033" fill="#1F2937" font-size="16" text-anchor="middle">武当</text>
+  <rect x="508" y="1010" width="86" height="34" rx="12" fill="#F3E8FF"/>
+  <text x="551" y="1033" fill="#1F2937" font-size="16" text-anchor="middle">阵法</text>
+  <text x="412" y="1084" fill="#667085" font-size="20">开场获得护盾</text>
+  <rect x="412" y="1058" width="262" height="18" rx="9" fill="#E8E1D5"/>
+  <rect x="412" y="1058" width="126" height="18" rx="9" fill="#8A63D2"/>
+  <text x="412" y="1042" fill="#667085" font-size="18">局外等级 1 / 局内 1 星</text>
+  
+  <rect x="24" y="1460" width="702" height="120" rx="30" fill="#E9DFC9" stroke="#D7C5AA" stroke-width="2"/>
+  
+      <circle cx="82" cy="1520" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
+      <text x="82" y="1528" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">章节</text>
+    
+      <circle cx="250" cy="1520" r="34" fill="#F4C56A" stroke="#B78832" stroke-width="2"/>
+      <text x="250" y="1528" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">功法</text>
+    
+      <circle cx="418" cy="1520" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
+      <text x="418" y="1528" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">角色</text>
+    
+      <circle cx="586" cy="1520" r="34" fill="#FFFFFF" stroke="#D7C5AA" stroke-width="2"/>
+      <text x="586" y="1528" fill="#1F2937" font-size="18" font-weight="500" text-anchor="middle">商城</text>
+    
+  
+</svg>

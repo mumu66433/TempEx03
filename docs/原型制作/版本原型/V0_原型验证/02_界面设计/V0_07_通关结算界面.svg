@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="750" height="1624" viewBox="0 0 750 1624" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="750" y2="1624" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#102033"/>
+      <stop offset="0.45" stop-color="#17314A"/>
+      <stop offset="1" stop-color="#2B5C7A"/>
+    </linearGradient>
+    <linearGradient id="goldBtn" x1="0" y1="0" x2="0" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE4A0"/>
+      <stop offset="1" stop-color="#F4C56A"/>
+    </linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#09111D" flood-opacity="0.24"/>
+    </filter>
+  </defs>
+  <rect width="750" height="1624" fill="url(#bg)"/>
+  <rect x="24" y="24" width="702" height="1576" rx="36" stroke="rgba(255,255,255,0.18)"/>
+  <text x="375" y="86" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">章节通关</text>
+  <text x="375" y="126" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">结算页用于承接挑战结果与下一步行动</text>
+  
+  <rect x="66" y="220" width="618" height="1040" rx="40" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  <circle cx="375" cy="390" r="88" fill="#5CBF75" opacity="0.14" stroke="#5CBF75" stroke-width="3"/>
+  <text x="375" y="412" fill="#5CBF75" font-size="56" font-weight="700" text-anchor="middle">胜利</text>
+  <text x="375" y="520" fill="#1F2937" font-size="42" font-weight="700" text-anchor="middle">章节通关</text>
+  <text x="375" y="566" fill="#667085" font-size="24" text-anchor="middle">第1章 银杏村 已解锁下一章节</text>
+  <rect x="110" y="654" width="530" height="256" rx="28" fill="#F4ECE0" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="142" y="716" fill="#1F2937" font-size="28" font-weight="700">通关奖励</text>
+  <text x="142" y="772" fill="#667085" font-size="24">铜钱 +120</text>
+  <text x="142" y="818" fill="#667085" font-size="24">功法经验 +18</text>
+  <text x="142" y="864" fill="#667085" font-size="24">章节进度：第2章已开放</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="110" y="990" width="530" height="88" rx="22" fill="url(#goldBtn)" stroke="#B78832" stroke-width="2"/>
+  </g>
+  <text x="375" y="1044" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">返回章节</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="110" y="1092" width="530" height="72" rx="22" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  </g>
+  <text x="375" y="1138" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">继续查看功法</text>
+  
+</svg>

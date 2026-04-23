@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>剑侠风云 V0 UE/UI 预览</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: #fff8ee;
+        --stroke: #d7c5aa;
+        --text: #1f2937;
+        --muted: #667085;
+        --gold: #f4c56a;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        background: linear-gradient(180deg, #0f172a 0%, #17314a 45%, #2b5c7a 100%);
+        color: #fff;
+      }
+      .wrap {
+        width: min(1280px, calc(100vw - 40px));
+        margin: 0 auto;
+        padding: 40px 0 80px;
+      }
+      .hero {
+        padding: 32px;
+        background: rgba(255, 248, 238, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 28px;
+        margin-bottom: 28px;
+      }
+      .hero h1 {
+        margin: 0 0 12px;
+        font-size: 36px;
+      }
+      .hero p {
+        margin: 0;
+        color: rgba(255,255,255,0.76);
+        line-height: 1.8;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--stroke);
+        border-radius: 28px;
+        padding: 18px;
+        color: var(--text);
+      }
+      .card h2 {
+        margin: 0 0 10px;
+        font-size: 24px;
+      }
+      .card p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+      .card img {
+        width: 100%;
+        border-radius: 18px;
+        border: 1px solid var(--stroke);
+        background: #fff;
+      }
+      .links {
+        margin-top: 28px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .links a {
+        display: inline-block;
+        padding: 12px 18px;
+        border-radius: 999px;
+        background: var(--gold);
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="hero">
+        <h1>剑侠风云 V0 UE/UI 预览</h1>
+        <p>本页用于集中预览 V0 原型验证版本的关键页面与组件样板。正式规范请优先查看同目录下的说明文档，以及 `docs/原型制作/00_共用规范/UI设计规范_v1.md`。</p>
+        <div class="links">
+          <a href="../../../00_共用规范/UI设计规范_v1.md">UI 设计规范</a>
+          <a href="../01_流程与结构/V0_信息架构.md">V0 信息架构</a>
+          <a href="../../../../原型制作/01_组件示例/V0_组件与样式板.svg">组件样式板</a>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>01 登录界面</h2>
+          <p>承接现有账号登录后的游戏入口，强调“进入游戏”的单一主路径。</p>
+          <img src="../02_界面设计/V0_01_登录界面.svg" alt="V0 登录界面" />
+        </article>
+        <article class="card">
+          <h2>02 章节界面</h2>
+          <p>V0 的默认主界面，负责章节选择与底部导航承接。</p>
+          <img src="../02_界面设计/V0_02_章节界面.svg" alt="V0 章节界面" />
+        </article>
+        <article class="card">
+          <h2>03 战斗界面</h2>
+          <p>顶部展示章节和血条，底部展示本局构筑，中间留给战斗表现。</p>
+          <img src="../02_界面设计/V0_03_战斗界面.svg" alt="V0 战斗界面" />
+        </article>
+        <article class="card">
+          <h2>04 功法三选一</h2>
+          <p>V0 核心策略弹窗，强调 3 卡平铺和快速选择。</p>
+          <img src="../02_界面设计/V0_04_功法三选一弹窗.svg" alt="V0 功法三选一弹窗" />
+        </article>
+        <article class="card">
+          <h2>05 功法列表</h2>
+          <p>展示已解锁功法与图鉴状态，V0 保留查看能力，不展开复杂养成。</p>
+          <img src="../02_界面设计/V0_05_功法列表界面.svg" alt="V0 功法列表界面" />
+        </article>
+        <article class="card">
+          <h2>06 功法详情浮层</h2>
+          <p>用于查看品质、门派、流派、升星效果和适配构筑说明。</p>
+          <img src="../02_界面设计/V0_06_功法详情浮层.svg" alt="V0 功法详情浮层" />
+        </article>
+        <article class="card">
+          <h2>07 通关结算</h2>
+          <p>展示奖励和下一步行动，承接章节推进。</p>
+          <img src="../02_界面设计/V0_07_通关结算界面.svg" alt="V0 通关结算界面" />
+        </article>
+        <article class="card">
+          <h2>08 失败结算</h2>
+          <p>展示失败反馈和重试建议，避免玩家直接流失。</p>
+          <img src="../02_界面设计/V0_08_失败结算界面.svg" alt="V0 失败结算界面" />
+        </article>
+      </section>
+    </div>
+  </body>
+</html>

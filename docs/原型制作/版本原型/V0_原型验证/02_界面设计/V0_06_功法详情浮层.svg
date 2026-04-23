@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="750" height="1624" viewBox="0 0 750 1624" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="750" y2="1624" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#102033"/>
+      <stop offset="0.45" stop-color="#17314A"/>
+      <stop offset="1" stop-color="#2B5C7A"/>
+    </linearGradient>
+    <linearGradient id="goldBtn" x1="0" y1="0" x2="0" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE4A0"/>
+      <stop offset="1" stop-color="#F4C56A"/>
+    </linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#09111D" flood-opacity="0.24"/>
+    </filter>
+  </defs>
+  <rect width="750" height="1624" fill="url(#bg)"/>
+  <rect x="24" y="24" width="702" height="1576" rx="36" stroke="rgba(255,255,255,0.18)"/>
+  <text x="375" y="86" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">功法详情</text>
+  <text x="375" y="126" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">点击功法卡弹出，展示品质、分类、等级和升星收益</text>
+  
+  <rect x="0" y="0" width="750" height="1624" fill="rgba(9,17,29,0.46)"/>
+  <rect x="52" y="166" width="646" height="1220" rx="36" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  <rect x="84" y="206" width="120" height="48" rx="16" fill="#8A63D2"/><text x="144" y="237" fill="#FFFFFF" font-size="20" font-weight="700" text-anchor="middle">SR</text>
+  <text x="84" y="316" fill="#1F2937" font-size="42" font-weight="700">太极真意</text>
+  <rect x="84" y="342" width="94" height="36" rx="12" fill="#E8F2FF"/><text x="131" y="366" fill="#1F2937" font-size="18" text-anchor="middle">武当</text>
+  <rect x="190" y="342" width="94" height="36" rx="12" fill="#F3E8FF"/><text x="237" y="366" fill="#1F2937" font-size="18" text-anchor="middle">内功</text>
+  <text x="84" y="442" fill="#667085" font-size="24">当前等级：1   当前局内星级：2</text>
+  <rect x="84" y="488" width="582" height="120" rx="24" fill="#F4ECE0" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="112" y="546" fill="#1F2937" font-size="28" font-weight="700">基础效果</text>
+  <text x="112" y="586" fill="#667085" font-size="22">生命 +15%，受击后有 20% 概率触发回击</text>
+  <rect x="84" y="642" width="582" height="276" rx="24" fill="#F4ECE0" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="112" y="700" fill="#1F2937" font-size="28" font-weight="700">升星效果</text>
+  <text x="112" y="748" fill="#667085" font-size="22">1星：生命 +15%</text>
+  <text x="112" y="792" fill="#667085" font-size="22">2星：生命 +30%，解锁回击效果</text>
+  <text x="112" y="836" fill="#667085" font-size="22">3星：生命 +70%，回击伤害提升</text>
+  <rect x="84" y="954" width="582" height="190" rx="24" fill="#F4ECE0" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="112" y="1012" fill="#1F2937" font-size="28" font-weight="700">羁绊提示</text>
+  <text x="112" y="1056" fill="#667085" font-size="22">门派：武当</text>
+  <text x="112" y="1096" fill="#667085" font-size="22">流派：内功</text>
+  <text x="112" y="1136" fill="#667085" font-size="22">适合稳扎稳打的防守型构筑</text>
+  
+  <g filter="url(#shadow)">
+    <rect x="84" y="1192" width="582" height="88" rx="22" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  </g>
+  <text x="375" y="1246" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">关闭</text>
+  
+</svg>
