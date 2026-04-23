@@ -39,6 +39,14 @@ function fileExists(targetPath) {
   }
 }
 
+function getFileMtime(targetPath) {
+  try {
+    return fs.statSync(targetPath).mtimeMs;
+  } catch {
+    return 0;
+  }
+}
+
 function ensureNodeVersion() {
   const major = Number.parseInt(process.versions.node.split('.')[0], 10);
   if (Number.isNaN(major) || major < minimumNodeMajor) {
@@ -80,7 +88,28 @@ function installDependencies() {
   }
 }
 
-function generatePrismaClient() {
+function needsPrismaGenerate() {
+  const schemaPath = path.join(rootDir, 'server', 'prisma', 'schema.prisma');
+  const generatedClientPath = path.join(rootDir, 'node_modules', '.prisma', 'client', 'index.js');
+  const runtimeClientPath = path.join(rootDir, 'node_modules', '@prisma', 'client', 'index.js');
+
+  if (!fileExists(schemaPath) || !fileExists(generatedClientPath) || !fileExists(runtimeClientPath)) {
+    return true;
+  }
+
+  const schemaMtime = getFileMtime(schemaPath);
+  const generatedClientMtime = getFileMtime(generatedClientPath);
+  const runtimeClientMtime = getFileMtime(runtimeClientPath);
+
+  return schemaMtime > generatedClientMtime || schemaMtime > runtimeClientMtime;
+}
+
+function generatePrismaClient(force = false) {
+  if (!force && !needsPrismaGenerate()) {
+    log('[setup] prisma client is up to date, skipping generate.');
+    return;
+  }
+
   log('[setup] generating Prisma client...');
   const result = runSync(npmCommand, ['run', 'db:generate', '--workspace', 'server']);
   if (result.status !== 0) {
@@ -124,11 +153,13 @@ async function main() {
   ensureNpmAvailable();
   ensureServerEnvFile();
 
+  let installedDependencies = false;
   if (needsInstall()) {
     installDependencies();
+    installedDependencies = true;
   }
 
-  generatePrismaClient();
+  generatePrismaClient(installedDependencies);
 
   let shuttingDown = false;
   const children = [
