@@ -32,12 +32,38 @@ function sanitizeBattleSession(session) {
 
 function buildBattleSessionPayload(session, chapters) {
   const safeSession = sanitizeBattleSession(session);
-  const chapter = chapters.find((item) => item.id === safeSession?.chapterId) || null;
+  if (!safeSession) {
+    return null;
+  }
 
-  return safeSession ? {
+  const chapter = chapters.find((item) => item.id === safeSession.chapterId) || null;
+  const active = safeSession.status === 'active';
+
+  return {
     ...safeSession,
     chapter,
-  } : null;
+    statusText: active
+      ? '战斗会话进行中'
+      : safeSession.result === 'victory'
+        ? '本局已通关结算'
+        : '本局已失败结算',
+    display: {
+      title: chapter ? `${chapter.name} 战斗准备` : '当前章节战斗准备',
+      subtitle: active
+        ? `第${safeSession.layerIndex}层 · 第${safeSession.waveIndex}波 · ${safeSession.waveType || '未命名波次'}`
+        : `结算结果：${safeSession.result || '未结算'}`,
+      enemySummary: `${safeSession.enemyName || '-'} x ${safeSession.enemyCount ?? 0}`,
+      enemyStats: {
+        life: safeSession.enemyLife,
+        atk: safeSession.enemyAtk,
+      },
+    },
+    actions: {
+      canStart: !active,
+      canSettle: active,
+      canRetry: true,
+    },
+  };
 }
 
 async function getPlayerBattleSessionByAccount({ account }) {
@@ -162,6 +188,11 @@ async function settleBattleSession({ account, result }) {
     },
   });
 
+  const currentChapter = chapters.find((item) => item.id === nextProgress.currentChapterId) || null;
+  const justUnlockedChapter = normalizedResult === 'victory'
+    ? chapters.find((item) => item.id === nextProgress.highestUnlockedChapterId) || null
+    : null;
+
   return {
     profile: {
       ...profile,
@@ -170,6 +201,14 @@ async function settleBattleSession({ account, result }) {
     },
     progress: sanitizeProgress(nextProgress),
     session: buildBattleSessionPayload(session, chapters),
+    settlement: {
+      result: normalizedResult,
+      currentChapter,
+      justUnlockedChapter,
+      nextAction: normalizedResult === 'victory'
+        ? '返回章节页并刷新到最新解锁进度'
+        : '可返回章节页重试当前章节',
+    },
   };
 }
 

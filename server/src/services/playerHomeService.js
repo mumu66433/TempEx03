@@ -20,9 +20,14 @@ async function getPlayerHomeOverview({ account }) {
       currentChapterId: profile.currentChapterId,
       highestUnlockedChapterId: profile.highestUnlockedChapterId,
       totalChapters: chapterRows.length,
+      currentChapterTitle: currentChapter?.title || '',
     },
     skillSummary: skillList.summary,
     battleSession,
+    display: {
+      playerMeta: `${profile.account} / 已解锁至第${profile.highestUnlockedChapterId}章`,
+      chapterSummary: currentChapter?.description || '当前暂无章节摘要',
+    },
   };
 }
 

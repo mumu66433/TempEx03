@@ -7,14 +7,35 @@ function toNumber(value) {
   return Number.isFinite(number) ? number : 0;
 }
 
-function getChapterConfigRows() {
-  const sheet = getExcelSheet(WORKBOOK_STEM);
-
-  if (!sheet) {
-    throw new Error('章节配置未加载，请检查 server/src/assets/config/C章节配置表.Chapter.xlsx');
+function toTextArray(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
   }
 
-  return sheet.records.map((row) => ({
+  if (value === null || value === undefined || value === '') {
+    return [];
+  }
+
+  return String(value)
+    .split(/[,\s/]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function buildChapterDescription(chapter) {
+  const parts = [
+    `${chapter.chapter || `第${chapter.id}章`} · ${chapter.name || '未命名章节'}`,
+    `关卡数 ${chapter.missionCount || '-'}`,
+    `预计波次 ${chapter.totalWaveEstimate || '-'}`,
+    `推荐生命 ${chapter.guessHeroLife || '-'}`,
+    `推荐攻击 ${chapter.guessHeroAtk || '-'}`,
+  ];
+
+  return parts.join(' / ');
+}
+
+function normalizeChapterRow(row) {
+  const chapter = {
     id: toNumber(row.Id),
     chapter: String(row.章节 || ''),
     name: String(row.名称 || ''),
@@ -26,7 +47,26 @@ function getChapterConfigRows() {
     bossWaveCount: toNumber(row.BOSS层波数),
     waveCycle: String(row.波数周期 || ''),
     totalWaveEstimate: toNumber(row.总波数估算),
-  }));
+    skillPoolRange: toTextArray(row.功法池范围),
+    enemyTheme: toTextArray(row.敌人主题),
+    waveTemplate: String(row.波数模板 || ''),
+  };
+
+  return {
+    ...chapter,
+    title: `${chapter.chapter || `第${chapter.id}章`} · ${chapter.name || '未命名章节'}`,
+    description: buildChapterDescription(chapter),
+  };
+}
+
+function getChapterConfigRows() {
+  const sheet = getExcelSheet(WORKBOOK_STEM);
+
+  if (!sheet) {
+    throw new Error('章节配置未加载，请检查 server/src/assets/config/C章节配置表.Chapter.xlsx');
+  }
+
+  return sheet.records.map((row) => normalizeChapterRow(row));
 }
 
 function getChapterConfigPayload() {
@@ -39,6 +79,8 @@ function getChapterConfigPayload() {
 }
 
 module.exports = {
+  buildChapterDescription,
   getChapterConfigRows,
   getChapterConfigPayload,
+  normalizeChapterRow,
 };
