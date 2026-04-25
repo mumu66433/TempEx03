@@ -56,6 +56,10 @@ function buildOutcomeLines(settlement, victory) {
 }
 
 export default class ResultScene extends BaseScene {
+  constructor() {
+    super('ResultScene');
+  }
+
   create() {
     this.addBackground('battle');
 

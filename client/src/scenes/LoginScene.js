@@ -8,6 +8,10 @@ import {
 import { getCurrentPlayer, getSession, refreshPlayerSession } from '../data/session.js';
 
 export default class LoginScene extends BaseScene {
+  constructor() {
+    super('LoginScene');
+  }
+
   async create() {
     this.addBackground('login');
 
