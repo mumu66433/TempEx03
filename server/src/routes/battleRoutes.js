@@ -2,6 +2,7 @@ const express = require('express');
 const {
   getPlayerBattleSessionByAccount,
   settleBattleSession,
+  simulateBattleSession,
   startBattleSession,
 } = require('../services/battleSessionService');
 
@@ -49,7 +50,24 @@ function createBattleRoutes() {
     try {
       const result = await settleBattleSession({
         account: req.body?.account,
-        result: req.body?.result,
+      });
+
+      res.json({
+        ok: true,
+        ...result,
+      });
+    } catch (error) {
+      res.status(400).json({
+        ok: false,
+        error: error.message,
+      });
+    }
+  });
+
+  router.post('/battle/session/simulate', async (req, res) => {
+    try {
+      const result = await simulateBattleSession({
+        account: req.body?.account,
       });
 
       res.json({
