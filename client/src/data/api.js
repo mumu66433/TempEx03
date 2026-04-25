@@ -1,5 +1,13 @@
 const API_BASE = '/api';
 
+export class ApiRequestError extends Error {
+  constructor(message, status = 0) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.status = status;
+  }
+}
+
 async function requestJson(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
     headers: {
@@ -11,7 +19,7 @@ async function requestJson(path, options = {}) {
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || payload.ok === false) {
-    throw new Error(payload.error || `请求失败(${response.status})`);
+    throw new ApiRequestError(payload.error || `请求失败(${response.status})`, response.status);
   }
 
   return payload;
@@ -31,9 +39,19 @@ export async function fetchPlayerProfile(account) {
   return requestJson(`/player/profile?${query.toString()}`);
 }
 
+export async function fetchPlayerHome(account) {
+  const query = new URLSearchParams({ account });
+  return requestJson(`/player/home?${query.toString()}`);
+}
+
 export async function fetchPlayerChapters(account) {
   const query = new URLSearchParams({ account });
   return requestJson(`/player/chapters?${query.toString()}`);
+}
+
+export async function fetchPlayerSkills(account) {
+  const query = new URLSearchParams({ account });
+  return requestJson(`/player/skills?${query.toString()}`);
 }
 
 export async function updatePlayerCurrentChapter(account, chapterId) {
@@ -42,6 +60,31 @@ export async function updatePlayerCurrentChapter(account, chapterId) {
     body: JSON.stringify({
       account,
       chapterId,
+    }),
+  });
+}
+
+export async function fetchBattleSession(account) {
+  const query = new URLSearchParams({ account });
+  return requestJson(`/battle/session?${query.toString()}`);
+}
+
+export async function startBattleSession(account, chapterId) {
+  return requestJson('/battle/session/start', {
+    method: 'POST',
+    body: JSON.stringify({
+      account,
+      chapterId,
+    }),
+  });
+}
+
+export async function settleBattleSession(account, result) {
+  return requestJson('/battle/session/settle', {
+    method: 'POST',
+    body: JSON.stringify({
+      account,
+      result,
     }),
   });
 }
