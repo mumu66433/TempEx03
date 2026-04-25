@@ -25,6 +25,23 @@ async function requestJson(path, options = {}) {
   return payload;
 }
 
+async function requestJsonWithFallbacks(paths, options = {}) {
+  let lastError = null;
+
+  for (const path of paths) {
+    try {
+      return await requestJson(path, options);
+    } catch (error) {
+      lastError = error;
+      if (!(error instanceof ApiRequestError) || error.status !== 404) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError || new ApiRequestError('请求失败', 404);
+}
+
 export async function fetchHealth() {
   return requestJson('/health');
 }
@@ -76,6 +93,23 @@ export async function startBattleSession(account, chapterId) {
       account,
       chapterId,
     }),
+  });
+}
+
+export async function simulateBattleSession(account, sessionId, chapterId) {
+  const body = JSON.stringify({
+    account,
+    sessionId,
+    chapterId,
+  });
+
+  return requestJsonWithFallbacks([
+    '/battle/session/simulate',
+    '/battle/simulate',
+    '/battle/simulation',
+  ], {
+    method: 'POST',
+    body,
   });
 }
 
