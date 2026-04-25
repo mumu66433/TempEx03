@@ -1,13 +1,13 @@
 import * as Phaser from 'phaser';
 import './style.css';
 import initLegacyAuth from './auth/legacyAuth.js';
-import { resolvePlayerChapterId } from './data/gameData.js';
+import { GAME_HEIGHT, GAME_WIDTH } from './data/gameData.js';
+import { bootstrapSession, getCurrentPlayer, updateSessionAfterAuth } from './data/session.js';
 import BootScene from './scenes/BootScene.js';
 import LoginScene from './scenes/LoginScene.js';
 import HomeScene from './scenes/HomeScene.js';
 import SkillScene from './scenes/SkillScene.js';
-import { getSavedPlayer, savePlayer } from './utils/storage.js';
-import { GAME_HEIGHT, GAME_WIDTH } from './data/gameData.js';
+import BattleScene from './scenes/BattleScene.js';
 
 function applyAppScale(appFrame) {
   const viewportWidth = window.innerWidth;
@@ -35,63 +35,6 @@ function buildShell() {
   };
 }
 
-async function requestJson(path, options = {}) {
-  const response = await fetch(path, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
-
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok || payload.ok === false) {
-    throw new Error(payload.error || `请求失败(${response.status})`);
-  }
-
-  return payload;
-}
-
-async function fetchChapterConfig() {
-  try {
-    const payload = await requestJson('/api/config/chapter');
-    return Array.isArray(payload.chapters) ? payload.chapters : [];
-  } catch (error) {
-    console.warn('[chapter-config] load failed:', error);
-    return [];
-  }
-}
-
-async function fetchPlayerProfile(account) {
-  if (!account) {
-    return null;
-  }
-
-  const query = new URLSearchParams({ account });
-  const payload = await requestJson(`/api/player/profile?${query.toString()}`);
-  return payload.profile || payload.player || null;
-}
-
-function normalizePlayer(player, chapters) {
-  const base = player || {};
-  const explicitChapterId = Number(base.currentChapterId ?? base.chapterId);
-  const chapterId = Number.isInteger(explicitChapterId) && explicitChapterId > 0
-    ? explicitChapterId
-    : resolvePlayerChapterId(base, chapters);
-  const highestUnlockedChapterId = Number(base.highestUnlockedChapterId);
-
-  return {
-    name: base.name || base.nickname || base.account || '少侠',
-    nickname: base.nickname || base.name || base.account || '少侠',
-    account: base.account || '',
-    chapterId,
-    currentChapterId: chapterId,
-    highestUnlockedChapterId: Number.isInteger(highestUnlockedChapterId) && highestUnlockedChapterId > 0
-      ? highestUnlockedChapterId
-      : chapterId,
-  };
-}
-
 function createGame(parent) {
   return new Phaser.Game({
     type: Phaser.AUTO,
@@ -103,7 +46,7 @@ function createGame(parent) {
       height: GAME_HEIGHT,
       mode: Phaser.Scale.NONE,
     },
-    scene: [BootScene, LoginScene, HomeScene, SkillScene],
+    scene: [BootScene, LoginScene, HomeScene, SkillScene, BattleScene],
   });
 }
 
@@ -112,34 +55,13 @@ async function start() {
   applyAppScale(ui.frame);
   window.addEventListener('resize', () => applyAppScale(ui.frame), { passive: true });
 
-  const chapters = await fetchChapterConfig();
-  window.__chapterConfigs = chapters;
-
+  await bootstrapSession();
   let game = null;
-  const savedPlayer = getSavedPlayer();
-  let effectivePlayer = savedPlayer;
-
-  if (savedPlayer.account) {
-    try {
-      const remoteProfile = await fetchPlayerProfile(savedPlayer.account);
-      if (remoteProfile) {
-        effectivePlayer = remoteProfile;
-      }
-    } catch (error) {
-      console.warn('[player-profile] restore failed:', error);
-    }
-  }
-
-  const normalizedSavedPlayer = normalizePlayer(effectivePlayer, chapters);
-  if (normalizedSavedPlayer.account) {
-    savePlayer(normalizedSavedPlayer);
-  }
 
   const auth = initLegacyAuth({
     mount: ui.authLayer,
     onAuthenticated: (player) => {
-      const normalizedPlayer = normalizePlayer(player, chapters);
-      savePlayer(normalizedPlayer);
+      updateSessionAfterAuth(player);
       ui.authLayer.classList.add('hidden');
 
       if (!game) {
@@ -155,8 +77,8 @@ async function start() {
   });
 
   window.__openLegacyAuth = () => auth.open();
-
-  if (!normalizedSavedPlayer.account) {
+  const hasAccount = Boolean(getCurrentPlayer().account);
+  if (!hasAccount) {
     auth.open();
     return;
   }

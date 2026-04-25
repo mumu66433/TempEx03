@@ -24,6 +24,9 @@ export default class BaseScene extends Phaser.Scene {
     } else if (theme === 'home') {
       this.add.circle(width * 0.5, height * 0.14, 160, 0xf59e0b, 0.08);
       this.add.circle(width * 0.82, height * 0.12, 100, 0xf8fafc, 0.05);
+    } else if (theme === 'battle') {
+      this.add.circle(width * 0.5, height * 0.2, 180, 0xef4444, 0.1);
+      this.add.circle(width * 0.76, height * 0.16, 120, 0xf59e0b, 0.08);
     } else {
       this.add.circle(width * 0.5, height * 0.18, 160, 0x10b981, 0.08);
       this.add.circle(width * 0.2, height * 0.12, 100, 0xf8fafc, 0.05);
