@@ -1,5 +1,13 @@
 import BaseScene from './BaseScene.js';
-import { createButton, createPill, drawRoundedPanel, makeLabel, makeThemeText } from '../utils/ui.js';
+import {
+  V0_COLORS,
+  createV0Button,
+  createV0HealthBar,
+  createV0Pill,
+  createV0VerticalCard,
+  drawV0Panel,
+  makeV0Text,
+} from '../utils/v0ui.js';
 import { ApiRequestError, fetchBattleSession, settleBattleSession, simulateBattleSession, startBattleSession } from '../data/api.js';
 import {
   buildBattleSummaryLines,
@@ -13,6 +21,7 @@ import { getCurrentPlayer, getSession, refreshHomeOverview, refreshPlayerSession
 
 const AUTO_PLAY_DELAY = 900;
 const SETTLE_DELAY = 700;
+const MAX_VISIBLE_LOGS = 6;
 
 function isInterfaceMissing(error) {
   return error instanceof ApiRequestError && error.status === 404;
@@ -23,29 +32,6 @@ function resolveChapter(sessionState, chapterId) {
   return sessionState.chapterOverview?.chapters?.find((item) => Number(item.id) === normalizedChapterId)
     || sessionState.chapters?.find((item) => Number(item.id) === normalizedChapterId)
     || null;
-}
-
-function formatSessionStatus(session) {
-  if (!session) {
-    return '当前没有进行中的战斗会话';
-  }
-  if (session.status === 'settled') {
-    return session.result === 'victory' ? '本局已通关结算' : '本局已失败结算';
-  }
-  return '战斗会话进行中';
-}
-
-function formatActorCard(actor, emptyText) {
-  if (!actor) {
-    return emptyText;
-  }
-
-  const lines = [
-    `名称：${actor.name || '-'}`,
-    `生命：${actor.life ?? '-'}${actor.maxLife ? ` / ${actor.maxLife}` : ''}`,
-    `攻击：${actor.atk ?? '-'}`,
-  ];
-  return lines.join('\n');
 }
 
 function buildHeroSnapshot(player, chapter, source = null) {
@@ -78,39 +64,37 @@ function buildEnemySnapshot(session, source = null) {
   };
 }
 
-function buildSessionMeta(session, chapter) {
-  if (!session) {
-    return `章节 ${chapter?.id || '-'} · ${chapter?.name || '未命名章节'} · 等待创建会话`;
+function getActorRatio(actor) {
+  if (!actor?.maxLife || actor.life === null || actor.life === undefined) {
+    return 1;
   }
-
-  return [
-    `章节 ${session.chapterId} · ${session.chapter?.name || chapter?.name || '未命名章节'}`,
-    `层数 ${session.layerIndex ?? '-'} / 波次 ${session.waveIndex ?? '-'}`,
-    `状态 ${session.status || '-'}`,
-  ].join(' · ');
+  return actor.life / actor.maxLife;
 }
 
-function buildSessionDetail(session, chapter) {
-  if (!session) {
-    return [
-      `章节：${chapter?.id || '-'} · ${chapter?.name || '未命名章节'}`,
-      `关卡组：${chapter?.missionId ?? '-'}`,
-      `关卡数：${chapter?.missionCount ?? '-'}`,
-      `预计波次：${chapter?.totalWaveEstimate ?? '-'}`,
-    ].join('\n');
+function buildBuildTexts(simulation, session) {
+  const labels = [];
+  if (simulation?.summary?.lines?.length) {
+    labels.push(...simulation.summary.lines.slice(0, 2));
   }
-
-  return [
-    `Mission：${session.missionId ?? '-'}`,
-    `波次类型：${session.waveType || '-'}`,
-    `敌人：${session.enemyName || '-'} × ${session.enemyCount ?? '-'}`,
-    `敌方生命 / 攻击：${session.enemyLife ?? '-'} / ${session.enemyAtk ?? '-'}`,
-  ].join('\n');
+  if (session?.waveType) {
+    labels.push(`${session.waveType} 波`);
+  }
+  while (labels.length < 3) {
+    labels.push('待获得功法');
+  }
+  return labels.slice(0, 3);
 }
 
-function buildLogLine(entry, index) {
-  const turn = entry.turn ?? index + 1;
-  return `第 ${turn} 回合\n${entry.text}`;
+function pickWaveBannerText(text, fallback = '等待波次推进') {
+  if (!text) {
+    return fallback;
+  }
+
+  if (text.includes('波') || text.includes('BOSS') || text.includes('Boss') || text.includes('来袭')) {
+    return text;
+  }
+
+  return fallback;
 }
 
 export default class BattleScene extends BaseScene {
@@ -126,14 +110,13 @@ export default class BattleScene extends BaseScene {
     this.playbackTimer = null;
     this.settleTimer = null;
     this.pendingSettlementResult = null;
+    this.overlayMode = null;
   }
 
   create() {
     this.addBackground('battle');
     this.player = getCurrentPlayer();
     this.syncSceneState();
-
-    this.addTopBar('章节战斗', '真实请求战斗会话与模拟日志，按回合播放文字战报');
     this.renderFrame();
     this.events.once('shutdown', () => this.clearTimers());
     this.events.once('destroy', () => this.clearTimers());
@@ -148,130 +131,284 @@ export default class BattleScene extends BaseScene {
   }
 
   renderFrame() {
-    drawRoundedPanel(this, 375, 310, 646, 184, 0x0b1220, 0.88, 0xffffff, 0.06, 28);
-    this.interfacePill = createPill(this, 160, 258, 154, 38, '战斗页加载中', 0x1d4ed8, '#dbeafe');
-    this.backendPill = createPill(
-      this,
-      338,
-      258,
-      140,
-      38,
-      this.sessionState.backend.ready ? '后端在线' : '后端异常',
-      this.sessionState.backend.ready ? 0x14532d : 0x7f1d1d,
-      this.sessionState.backend.ready ? '#bbf7d0' : '#fecaca',
-    );
-    this.titleText = makeThemeText(this, 375, 322, `${this.chapter?.name || '当前章节'} 战斗准备`, {
-      fontSize: '34px',
-      color: '#f8fafc',
-      fontStyle: 'bold',
+    drawV0Panel(this, 375, 223, 686, 154, {
+      fill: V0_COLORS.panel,
+      stroke: V0_COLORS.panelStroke,
+      radius: 30,
     });
-    this.subText = makeLabel(this, 375, 378, '开始战斗后会先创建会话，再请求后端模拟并播放文字日志。', {
+    this.chapterTitle = makeV0Text(this, 70, 204, `第${this.chapter?.id || this.chapterId}章 ${this.chapter?.name || '当前章节'}`, {
+      fontSize: '26px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    }).setOrigin(0, 0.5);
+    this.waveText = makeV0Text(this, 70, 242, '第1层 第1波 / 共1波', {
+      fontSize: '22px',
+      color: V0_COLORS.mutedText,
+    }).setOrigin(0, 0.5);
+    this.wavePill = createV0Pill(this, 125, 273, 110, 34, '普通波', {
+      fill: 0xffe7a8,
+      radius: 16,
       fontSize: '18px',
-      color: '#cbd5e1',
-      wordWrap: { width: 560 },
-      align: 'center',
     });
+    this.autoPill = createV0Pill(this, 259, 273, 126, 34, '自动战斗', {
+      fill: 0xe8f2ff,
+      radius: 16,
+      fontSize: '18px',
+    });
+    this.statusCardLabel = makeV0Text(this, 372, 204, '双方状态卡', {
+      fontSize: '26px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    }).setOrigin(0, 0.5);
+    this.heroStateLabel = makeV0Text(this, 420, 242, '我方生命', {
+      fontSize: '20px',
+      color: V0_COLORS.mutedText,
+    }).setOrigin(0, 0.5);
+    this.heroBar = createV0HealthBar(this, 420, 256, 258, 1, { fill: V0_COLORS.green });
+    this.enemyStateLabel = makeV0Text(this, 420, 290, '敌方生命', {
+      fontSize: '20px',
+      color: V0_COLORS.mutedText,
+    }).setOrigin(0, 0.5);
+    this.enemyBar = createV0HealthBar(this, 420, 304, 258, 1, { fill: V0_COLORS.red });
 
-    drawRoundedPanel(this, 375, 872, 646, 882, 0x0f172a, 0.88, 0xffffff, 0.06, 32);
-    this.sessionTitle = makeThemeText(this, 375, 520, '正在读取战斗会话', {
+    createV0VerticalCard(this, 375, 752, 670, 840, {
+      fill: 0xffffff,
+      fillAlpha: 0.08,
+      stroke: 0xffffff,
+      strokeAlpha: 0.2,
+      radius: 34,
+    });
+    this.stageTitle = makeV0Text(this, 78, 388, '文字战报主表现区', {
       fontSize: '30px',
-      color: '#f8fafc',
-      fontStyle: 'bold',
-    });
-    this.sessionMeta = makeLabel(this, 375, 578, '', {
-      fontSize: '17px',
-      color: '#94a3b8',
-      wordWrap: { width: 560 },
-      align: 'center',
-      lineSpacing: 10,
-    });
-    this.sessionDetail = makeLabel(this, 375, 652, '', {
+      fontStyle: '700',
+      color: '#ffffff',
+    }).setOrigin(0, 0.5);
+    this.stageSubtitle = makeV0Text(this, 78, 424, '主舞台承载最新战报、回合日志、波次切换和战斗摘要', {
+      fontSize: '20px',
+      color: 'rgba(255,255,255,0.72)',
+    }).setOrigin(0, 0.5);
+    createV0Pill(this, 598, 380, 136, 36, 'V0 临时实现', {
+      fill: 0xffe7a8,
+      radius: 18,
       fontSize: '18px',
-      color: '#e2e8f0',
-      wordWrap: { width: 560 },
-      align: 'center',
-      lineSpacing: 14,
     });
 
-    drawRoundedPanel(this, 212, 794, 230, 172, 0x111827, 0.9, 0xffffff, 0.06, 24);
-    drawRoundedPanel(this, 538, 794, 230, 172, 0x1f2937, 0.9, 0xffffff, 0.06, 24);
-    makeLabel(this, 212, 732, '我方快照', {
-      fontSize: '16px',
-      color: '#7dd3fc',
+    drawV0Panel(this, 375, 526, 606, 152, {
+      fill: V0_COLORS.panel,
+      stroke: V0_COLORS.panelStroke,
+      radius: 28,
     });
-    makeLabel(this, 538, 732, '敌方快照', {
-      fontSize: '16px',
-      color: '#fca5a5',
-    });
-    this.heroStatus = this.add.text(112, 766, '', {
-      fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
-      fontSize: '17px',
-      color: '#f8fafc',
-      lineSpacing: 10,
-      wordWrap: { width: 200 },
-    });
-    this.enemyStatus = this.add.text(438, 766, '', {
-      fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
-      fontSize: '17px',
-      color: '#f8fafc',
-      lineSpacing: 10,
-      wordWrap: { width: 200 },
-    });
-
-    makeThemeText(this, 375, 906, '战斗日志', {
-      fontSize: '24px',
-      color: '#f8fafc',
-      fontStyle: 'bold',
-    });
-    this.logCounter = makeLabel(this, 375, 944, '0 / 0', {
-      fontSize: '15px',
-      color: '#94a3b8',
-    });
-    drawRoundedPanel(this, 375, 1116, 566, 296, 0x0b1220, 0.96, 0xffffff, 0.06, 24);
-    this.logContent = this.add.text(110, 986, '', {
-      fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
-      fontSize: '17px',
-      color: '#e2e8f0',
-      lineSpacing: 12,
-      wordWrap: { width: 530 },
-    });
-
-    this.summaryText = makeLabel(this, 375, 1288, '', {
-      fontSize: '17px',
-      color: '#7dd3fc',
-      wordWrap: { width: 560 },
-      align: 'center',
-      lineSpacing: 12,
-    });
-    this.feedback = makeLabel(this, 375, 1368, '', {
-      fontSize: '14px',
-      color: '#94a3b8',
-      wordWrap: { width: 540 },
-      align: 'center',
-    });
-
-    this.primaryButton = createButton(this, 192, 1452, 188, 72, '开始战斗', 0x2563eb, 0x7dd3fc, () => {
+    this.latestLabel = makeV0Text(this, 104, 496, '最新战报', {
+      fontSize: '18px',
+      fontStyle: '700',
+      color: V0_COLORS.mutedText,
+    }).setOrigin(0, 0.5);
+    this.latestReport = makeV0Text(this, 104, 546, '战斗尚未开始', {
+      fontSize: '32px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+      wordWrap: { width: 500 },
+    }).setOrigin(0, 0.5);
+    this.latestMeta = makeV0Text(this, 104, 584, '当前节奏：等待创建战斗会话', {
+      fontSize: '20px',
+      color: V0_COLORS.mutedText,
+      wordWrap: { width: 500 },
+    }).setOrigin(0, 0.5);
+    this.actionButton = createV0Button(this, 560, 570, 180, 62, '开始战斗', 'primary', () => {
       this.handlePrimaryAction();
+    }, { fontSize: '24px', radius: 20 });
+
+    drawV0Panel(this, 375, 782, 606, 312, {
+      fill: 0x0a1220,
+      fillAlpha: 0.68,
+      stroke: 0xffffff,
+      strokeAlpha: 0.18,
+      radius: 28,
     });
-    this.stepButton = createButton(this, 375, 1452, 150, 72, '下一回合', 0x1d4ed8, 0x7dd3fc, () => {
+    this.logLabel = makeV0Text(this, 104, 674, '回合日志', {
+      fontSize: '24px',
+      fontStyle: '700',
+      color: '#ffffff',
+    }).setOrigin(0, 0.5);
+    this.logHint = makeV0Text(this, 104, 714, '默认自动滚动到最新内容，保留最近 6 条可视记录', {
+      fontSize: '18px',
+      color: 'rgba(255,255,255,0.70)',
+    }).setOrigin(0, 0.5);
+    this.logText = makeV0Text(this, 104, 764, '等待服务端返回战报', {
+      fontSize: '22px',
+      color: '#d7e7f7',
+      wordWrap: { width: 520 },
+      lineSpacing: 14,
+      align: 'left',
+    }).setOrigin(0, 0);
+    this.stepButton = createV0Button(this, 598, 902, 122, 42, '推进', 'secondary', () => {
       this.playNextTurn();
+    }, { fontSize: '20px', radius: 16 });
+
+    drawV0Panel(this, 375, 1013, 606, 94, {
+      fill: 0xffe7a8,
+      stroke: V0_COLORS.gold,
+      radius: 24,
     });
-    this.autoButton = createButton(this, 558, 1452, 150, 72, '自动开', 0x0f766e, 0x5eead4, () => {
-      this.toggleAutoPlay();
+    this.bannerLabel = makeV0Text(this, 375, 1006, '波次切换横幅', {
+      fontSize: '20px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
     });
-    this.replayButton = createButton(this, 192, 1538, 188, 66, '重播战报', 0x111827, 0x94a3b8, () => {
-      this.replaySimulation();
-    });
-    this.settleButton = createButton(this, 375, 1538, 188, 66, '重新结算', 0x7c2d12, 0xfdba74, () => {
-      this.retrySettlement();
-    });
-    this.backButton = createButton(this, 558, 1538, 150, 66, '返回章节', 0x111827, 0x94a3b8, () => {
-      this.scene.start('HomeScene');
+    this.bannerText = makeV0Text(this, 375, 1040, '等待波次推进', {
+      fontSize: '30px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+      wordWrap: { width: 540 },
     });
 
-    this.updateSnapshots();
-    this.renderLogState('正在读取后端战斗会话...');
-    this.applyMode('loading', '');
+    drawV0Panel(this, 375, 1116, 606, 76, {
+      fill: V0_COLORS.panel,
+      stroke: V0_COLORS.panelStroke,
+      radius: 24,
+    });
+    this.summaryPrefix = makeV0Text(this, 104, 1124, '战斗摘要', {
+      fontSize: '21px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    }).setOrigin(0, 0.5);
+    this.summaryLine = makeV0Text(this, 248, 1124, '累计记录 0 · 结果待定 · 主功法待接入', {
+      fontSize: '20px',
+      color: V0_COLORS.mutedText,
+    }).setOrigin(0, 0.5);
+
+    drawV0Panel(this, 375, 1320, 686, 200, {
+      fill: V0_COLORS.panel,
+      stroke: V0_COLORS.panelStroke,
+      radius: 34,
+    });
+    this.buildTitle = makeV0Text(this, 72, 1280, '本局构筑条', {
+      fontSize: '28px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    }).setOrigin(0, 0.5);
+    this.buildHint = makeV0Text(this, 72, 1314, '固定底部锚点，功法超出单屏后横向滚动', {
+      fontSize: '20px',
+      color: V0_COLORS.mutedText,
+    }).setOrigin(0, 0.5);
+    this.buildCards = [
+      createV0VerticalCard(this, 130, 1370, 116, 72, { fill: 0xffe7a8, stroke: V0_COLORS.panelStroke, radius: 18 }),
+      createV0VerticalCard(this, 264, 1370, 116, 72, { fill: 0xe8f2ff, stroke: V0_COLORS.panelStroke, radius: 18 }),
+      createV0VerticalCard(this, 398, 1370, 116, 72, { fill: 0xf3e8ff, stroke: V0_COLORS.panelStroke, radius: 18 }),
+    ];
+    this.buildTexts = [
+      makeV0Text(this, 130, 1380, '待获得功法', { fontSize: '18px', fontStyle: '700', color: V0_COLORS.darkText, wordWrap: { width: 94 } }),
+      makeV0Text(this, 264, 1380, '待获得功法', { fontSize: '18px', fontStyle: '700', color: V0_COLORS.darkText, wordWrap: { width: 94 } }),
+      makeV0Text(this, 398, 1380, '待获得功法', { fontSize: '18px', fontStyle: '700', color: V0_COLORS.darkText, wordWrap: { width: 94 } }),
+    ];
+    this.pauseButton = createV0Button(this, 609, 1367, 138, 74, '暂停', 'secondary', () => {
+      this.openPauseOverlay();
+    }, { fontSize: '28px' });
+
+    this.feedbackText = makeV0Text(this, 375, 1450, '', {
+      fontSize: '18px',
+      color: '#fff5d6',
+      wordWrap: { width: 560 },
+    });
+
+    this.renderOverlay();
+    this.updateStageSnapshots();
+    this.updateBuildBar();
+    this.renderRecentLogs();
+  }
+
+  renderOverlay() {
+    this.overlay = this.add.container(0, 0).setVisible(false);
+    const mask = this.add.rectangle(375, 812, 750, 1624, 0x09111d, 0.56);
+    const panel = drawV0Panel(this, 375, 820, 470, 292, {
+      fill: V0_COLORS.panel,
+      stroke: V0_COLORS.panelStroke,
+      radius: 32,
+    });
+    this.overlayTitle = makeV0Text(this, 375, 742, '暂停中', {
+      fontSize: '40px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    });
+    this.overlayDesc = makeV0Text(this, 375, 824, '当前战斗已暂停', {
+      fontSize: '22px',
+      color: V0_COLORS.mutedText,
+      wordWrap: { width: 360 },
+    });
+    this.overlayPrimary = createV0Button(this, 375, 914, 280, 72, '继续战斗', 'primary', () => {
+      this.handleOverlayPrimary();
+    }, { fontSize: '28px' });
+    this.overlaySecondary = createV0Button(this, 375, 998, 280, 60, '返回章节', 'secondary', () => {
+      this.handleOverlaySecondary();
+    }, { fontSize: '24px' });
+    this.overlay.add([
+      mask,
+      panel,
+      this.overlayTitle,
+      this.overlayDesc,
+      this.overlayPrimary.container,
+      this.overlaySecondary.container,
+    ]);
+  }
+
+  handleOverlayPrimary() {
+    if (this.overlayMode === 'pause') {
+      this.closeOverlay();
+      if (this.autoPlayEnabled && this.playbackIndex < this.logEntries.length && this.currentMode === 'playback-ready') {
+        this.startAutoPlayback();
+      }
+      return;
+    }
+
+    if (this.overlayMode === 'confirm-exit') {
+      this.closeOverlay();
+      this.scene.start('HomeScene');
+    }
+  }
+
+  handleOverlaySecondary() {
+    if (this.overlayMode === 'pause') {
+      this.openReturnConfirm();
+      return;
+    }
+
+    this.closeOverlay();
+  }
+
+  openPauseOverlay() {
+    this.clearTimers();
+    this.overlayMode = 'pause';
+    this.overlay.setVisible(true);
+    this.overlayTitle.setText('暂停中');
+    this.overlayDesc.setText('可继续当前挑战，或返回章节页结束本局');
+    this.overlayPrimary.setText('继续战斗');
+    this.overlaySecondary.setText('返回章节');
+  }
+
+  openReturnConfirm() {
+    this.clearTimers();
+    this.overlayMode = 'confirm-exit';
+    this.overlay.setVisible(true);
+    this.overlayTitle.setText('确认返回章节');
+    this.overlayDesc.setText('返回章节将结束本局挑战，是否继续');
+    this.overlayPrimary.setText('确认返回');
+    this.overlaySecondary.setText('继续挑战');
+  }
+
+  showSettlementOverlay(text) {
+    this.overlayMode = 'settling';
+    this.overlay.setVisible(true);
+    this.overlayTitle.setText('结算中');
+    this.overlayDesc.setText(text);
+    this.overlayPrimary.setVisible(false);
+    this.overlaySecondary.setVisible(false);
+  }
+
+  closeOverlay() {
+    this.overlayMode = null;
+    this.overlay.setVisible(false);
+    this.overlayPrimary.setVisible(true);
+    this.overlaySecondary.setVisible(true);
   }
 
   clearTimers() {
@@ -296,113 +433,88 @@ export default class BattleScene extends BaseScene {
       this.simulation = null;
     }
 
-    this.updateSnapshots();
-    this.renderLogState(!keepSimulation ? '战斗日志会在模拟接口返回后按回合显示。' : '战报已重置，准备重新播放。');
+    this.latestReport.setText('战斗尚未开始');
+    this.latestMeta.setText('当前节奏：等待创建战斗会话');
+    this.bannerText.setText('等待波次推进');
+    this.summaryLine.setText('累计记录 0 · 结果待定 · 主功法待接入');
+    this.renderRecentLogs();
+    this.updateBuildBar();
   }
 
-  updateSnapshots(hero = null, enemy = null) {
+  updateStageSnapshots(hero = null, enemy = null) {
     const heroSnapshot = buildHeroSnapshot(this.player, this.chapter, hero || this.simulation?.hero || null);
     const enemySnapshot = buildEnemySnapshot(this.battleSession, enemy || this.simulation?.enemy || null);
-
-    this.heroStatus.setText(formatActorCard(heroSnapshot, '等待后端返回我方快照'));
-    this.enemyStatus.setText(formatActorCard(enemySnapshot, '等待后端返回敌方快照'));
+    this.heroStateLabel.setText(heroSnapshot?.maxLife ? `我方生命 ${heroSnapshot.life}/${heroSnapshot.maxLife}` : '我方生命');
+    this.enemyStateLabel.setText(enemySnapshot?.maxLife ? `敌方生命 ${enemySnapshot.life}/${enemySnapshot.maxLife}` : '敌方生命');
+    this.heroBar.setValue(getActorRatio(heroSnapshot));
+    this.enemyBar.setValue(getActorRatio(enemySnapshot));
   }
 
-  updateHeader(title, subtitle) {
-    this.titleText.setText(title);
-    this.subText.setText(subtitle);
+  updateBuildBar() {
+    const labels = buildBuildTexts(this.simulation, this.battleSession);
+    this.buildTexts.forEach((textNode, index) => {
+      textNode.setText(labels[index]);
+    });
   }
 
-  updateBattleInfo(title, meta, detail, summary, feedback) {
-    this.sessionTitle.setText(title);
-    this.sessionMeta.setText(meta);
-    this.sessionDetail.setText(detail);
-    this.summaryText.setText(summary);
-    this.feedback.setText(feedback);
+  renderRecentLogs() {
+    const visibleLogs = this.playedLogs.slice(-MAX_VISIBLE_LOGS);
+    this.logText.setText(visibleLogs.length ? visibleLogs.join('\n\n') : '等待服务端返回战报');
   }
 
-  renderLogState(text) {
-    this.logContent.setText(text);
-    this.logCounter.setText(`${Math.min(this.playbackIndex, this.logEntries.length)} / ${this.logEntries.length}`);
+  updateSummaryLine() {
+    const summaryLines = buildBattleSummaryLines(this.simulation?.summary, { result: this.pendingSettlementResult });
+    const summaryText = summaryLines[0]
+      || `累计记录 ${this.playedLogs.length} · ${this.pendingSettlementResult ? `结果 ${formatBattleResult(this.pendingSettlementResult)}` : '结果待定'} · 主功法待接入`;
+    this.summaryLine.setText(summaryText);
   }
 
-  applyMode(mode, feedback) {
+  applyMode(mode, feedback = '') {
     this.currentMode = mode;
-    const pillTextMap = {
-      loading: '读取中',
-      ready: '待开始',
-      'active-ready': '可播放',
-      starting: '创建中',
-      simulating: '模拟中',
-      'simulate-missing': '缺接口',
-      'playback-ready': '待播放',
-      playback: '播放中',
-      'playback-finished': '待结算',
-      settling: '结算中',
-      'settlement-error': '结算失败',
-      settled: '已结算',
-      failed: '失败',
-      'interface-missing': '未就绪',
-    };
-    this.interfacePill.list[1].setText(pillTextMap[mode] || '战斗中');
-    this.feedback.setText(feedback || '');
-    this.updateActionButtons();
+    const canStep = this.logEntries.length > 0 && this.playbackIndex < this.logEntries.length && !this.autoPlayEnabled && mode === 'playback-ready';
+    const canAction = ['ready', 'active-ready', 'failed', 'simulate-missing', 'interface-missing', 'settled', 'settlement-error'].includes(mode);
+    this.stepButton.setVisible(canStep);
+    this.actionButton.setVisible(canAction);
+    this.feedbackText.setText(feedback);
+    this.autoPill.label.setText(this.autoPlayEnabled ? '自动战斗' : '手动推进');
   }
 
-  updateActionButtons() {
-    const canCreateNew = !this.battleSession || this.battleSession.status === 'settled';
-    const hasActiveSession = this.battleSession?.status === 'active';
-    const hasSimulation = Boolean(this.simulation);
-    const isSimulating = this.currentMode === 'simulating';
-    const isPlaying = this.currentMode === 'playback';
-    const isSettling = this.currentMode === 'settling';
-    const canManualStep = hasSimulation && !isPlaying && !isSettling && this.playbackIndex < this.logEntries.length;
-    const canReplay = hasSimulation && !isSettling && this.playbackIndex > 0;
-    const canRetrySettlement = this.currentMode === 'settlement-error' && Boolean(this.pendingSettlementResult);
+  renderBattleSession() {
+    const session = this.battleSession;
+    this.updateStageSnapshots();
+    this.updateBuildBar();
 
-    const primaryLabel = canCreateNew
-      ? '开始战斗'
-      : hasActiveSession && !hasSimulation
-        ? '开始播放'
-        : isSimulating
-          ? '模拟中'
-          : isSettling
-            ? '结算中'
-            : '战报已生成';
-
-    const primaryEnabled = (canCreateNew || (hasActiveSession && !hasSimulation)) && !isSimulating && !isSettling;
-    this.primaryButton.label.setText(primaryLabel);
-    this.setButtonState(this.primaryButton, primaryEnabled, primaryEnabled ? 0x2563eb : 0x334155);
-
-    this.setButtonState(this.stepButton, canManualStep, canManualStep ? 0x1d4ed8 : 0x334155);
-
-    const autoEnabled = (hasActiveSession || hasSimulation) && !isSettling;
-    this.autoButton.label.setText(this.autoPlayEnabled ? '自动开' : '自动关');
-    this.setButtonState(this.autoButton, autoEnabled, autoEnabled ? (this.autoPlayEnabled ? 0x0f766e : 0x334155) : 0x334155);
-
-    this.setButtonState(this.replayButton, canReplay, canReplay ? 0x111827 : 0x334155);
-    this.setButtonState(this.settleButton, canRetrySettlement, canRetrySettlement ? 0x7c2d12 : 0x334155);
-    this.setButtonState(this.backButton, true, 0x111827);
-  }
-
-  setButtonState(button, enabled, fill) {
-    button.bg.setFillStyle(fill, 1);
-    if (button.hitArea?.input) {
-      button.hitArea.input.enabled = enabled;
+    if (!session) {
+      this.chapterTitle.setText(`第${this.chapter?.id || this.chapterId}章 ${this.chapter?.name || '当前章节'}`);
+      this.waveText.setText('第1层 第1波 / 共1波');
+      this.wavePill.label.setText('待命');
+      this.latestReport.setText('战斗尚未开始');
+      this.latestMeta.setText('当前节奏：等待创建战斗会话');
+      this.bannerText.setText('等待波次推进');
+      this.summaryLine.setText('累计记录 0 · 结果待定 · 主功法待接入');
+      this.actionButton.setText('开始战斗');
+      this.applyMode('ready', '等待开始战斗');
+      return;
     }
+
+    this.chapterTitle.setText(`第${session.chapterId || this.chapterId}章 ${session.chapter?.name || this.chapter?.name || '当前章节'}`);
+    this.waveText.setText(`第${session.layerIndex ?? '-'}层 第${session.waveIndex ?? '-'}波 / 共${this.chapter?.totalWaveEstimate ?? '-'}波`);
+    this.wavePill.label.setText(session.waveType || '普通波');
+    this.latestReport.setText(session.status === 'settled' ? '本局已结算，可重新挑战' : '会话已创建，准备生成最新战报');
+    this.latestMeta.setText(session.status === 'settled'
+      ? '当前节奏：可重新开始本章战斗'
+      : '当前节奏：点击按钮请求服务端模拟战斗');
+    this.bannerText.setText(session.status === 'settled' ? '本局结算完成' : '等待波次推进');
+    this.summaryLine.setText(session.status === 'settled'
+      ? `累计记录 ${this.playedLogs.length} · 结果 ${formatBattleResult(session.result)} · 主功法待接入`
+      : '累计记录 0 · 结果待定 · 主功法待接入');
+    this.actionButton.setText(session.status === 'settled' ? '再次挑战' : '开始战斗');
+    this.applyMode(session.status === 'settled' ? 'settled' : 'active-ready', session.status === 'settled' ? '本局已结算' : '会话已创建');
   }
 
   async loadBattleSession() {
     this.resetPlayback();
-    this.updateHeader(`${this.chapter?.name || '当前章节'} 战斗准备`, '正在读取已有战斗会话；如未开战可直接开始。');
-    this.updateBattleInfo(
-      '战斗会话读取中',
-      '正在读取当前账号的战斗会话状态。',
-      '',
-      '',
-      '',
-    );
-    this.applyMode('loading', '');
+    this.applyMode('loading', '正在读取战斗会话');
 
     try {
       const payload = await fetchBattleSession(this.player.account);
@@ -411,78 +523,21 @@ export default class BattleScene extends BaseScene {
       this.renderBattleSession();
     } catch (error) {
       this.battleSession = null;
-      if (isInterfaceMissing(error)) {
-        this.updateHeader('战斗接口未就绪', '已接入真实流程，但后端会话接口还没落地。');
-        this.updateBattleInfo(
-          '无法读取战斗会话',
-          '`/api/battle/session` 还不可用，前端不会伪造会话或结果。',
-          '需要后端先提供真实会话接口，战斗页才能继续联调。',
-          '当前只能保留错误态与重试入口。',
-          error.message,
-        );
-        this.renderLogState('等待后端提供战斗会话接口。');
-        this.applyMode('interface-missing', error.message);
-        return;
-      }
-
-      this.updateHeader('读取战斗会话失败', '后端在线时请检查账号、章节或会话数据。');
-      this.updateBattleInfo(
-        '读取战斗会话失败',
-        error.message,
-        '可以点击下方按钮重新读取会话；前端不会生成假战斗数据。',
-        '如果是联调阶段，请优先确认 battle session 接口是否正常。',
-        error.message,
-      );
-      this.renderLogState('读取会话失败，暂无可播放的战报。');
-      this.applyMode('failed', error.message);
+      this.actionButton.setText('重新读取');
+      this.latestReport.setText(isInterfaceMissing(error) ? '战斗接口未就绪' : '读取战斗会话失败');
+      this.latestMeta.setText(error.message);
+      this.bannerText.setText('等待波次推进');
+      this.summaryLine.setText('累计记录 0 · 结果待定 · 主功法待接入');
+      this.applyMode(isInterfaceMissing(error) ? 'interface-missing' : 'failed', error.message);
     }
-  }
-
-  renderBattleSession() {
-    const session = this.battleSession;
-
-    this.updateSnapshots();
-    if (!session) {
-      this.updateHeader(`${this.chapter?.name || '当前章节'} 战斗准备`, '未发现进行中的会话，可以直接开始本章战斗。');
-      this.updateBattleInfo(
-        `${this.chapter?.name || '当前章节'} 尚未开战`,
-        buildSessionMeta(null, this.chapter),
-        buildSessionDetail(null, this.chapter),
-        '点击“开始战斗”后，前端会先请求创建会话，再请求战斗模拟并播放文字日志。',
-        '等待开始战斗。',
-      );
-      this.renderLogState('战斗尚未开始，等待后端返回模拟日志。');
-      this.applyMode('ready', '等待开始战斗。');
-      return;
-    }
-
-    this.updateHeader(
-      session.chapter?.name || this.chapter?.name || '章节战斗',
-      session.status === 'active'
-        ? '会话已创建，可以请求后端模拟并按回合播放。'
-        : '当前会话已结算，可重新开始本章战斗。',
-    );
-
-    const summaryLines = session.status === 'settled'
-      ? buildBattleSummaryLines(null, { result: session.result })
-      : ['点击“开始播放”后会请求后端生成完整回合日志。'];
-
-    this.updateBattleInfo(
-      formatSessionStatus(session),
-      buildSessionMeta(session, this.chapter),
-      buildSessionDetail(session, this.chapter),
-      summaryLines.join('\n'),
-      session.status === 'active' ? '会话已就绪，等待拉取战斗日志。' : '会话已结算，可重新开始。',
-    );
-    this.renderLogState(
-      session.status === 'active'
-        ? '当前还没有回合日志。点击“开始播放”请求后端模拟战斗。'
-        : '本局已结算，当前战报未持久化。重新开始后可查看新的文字日志。',
-    );
-    this.applyMode(session.status === 'active' ? 'active-ready' : 'settled', session.status === 'active' ? '会话已就绪。' : '会话已结算。');
   }
 
   async handlePrimaryAction() {
+    if (this.currentMode === 'failed' || this.currentMode === 'interface-missing') {
+      await this.loadBattleSession();
+      return;
+    }
+
     if (!this.battleSession || this.battleSession.status === 'settled') {
       await this.startAndSimulateBattle();
       return;
@@ -495,54 +550,32 @@ export default class BattleScene extends BaseScene {
 
   async startAndSimulateBattle() {
     this.resetPlayback();
-    this.updateHeader(`${this.chapter?.name || '当前章节'} 战斗准备`, '正在请求后端创建战斗会话。');
-    this.applyMode('starting', '正在创建战斗会话...');
+    this.latestReport.setText('正在创建战斗会话');
+    this.latestMeta.setText('当前节奏：准备生成文字战报');
+    this.applyMode('loading', '正在创建战斗会话');
 
     try {
       const payload = await startBattleSession(this.player.account, this.chapterId);
       this.battleSession = normalizeBattleSession(payload.session || null);
       this.syncSceneState(this.battleSession?.chapterId || this.chapterId);
-      this.updateBattleInfo(
-        '战斗会话已创建',
-        buildSessionMeta(this.battleSession, this.chapter),
-        buildSessionDetail(this.battleSession, this.chapter),
-        '会话创建成功，正在请求后端模拟战斗。',
-        '会话已创建。',
-      );
       await this.requestBattleSimulation();
     } catch (error) {
-      this.updateBattleInfo(
-        '开始战斗失败',
-        error.message,
-        '战斗会话创建失败，当前不会进入假战斗流程。',
-        '请确认章节已解锁，且后端 start 接口已返回真实会话。',
-        error.message,
-      );
-      this.renderLogState('开始战斗失败，暂无可播放日志。');
+      this.latestReport.setText('开始战斗失败');
+      this.latestMeta.setText(error.message);
       this.applyMode('failed', `开始战斗失败：${error.message}`);
     }
   }
 
   async requestBattleSimulation() {
     if (!this.battleSession) {
-      this.applyMode('failed', '当前没有可模拟的战斗会话。');
+      this.applyMode('failed', '当前没有可模拟的会话');
       return;
     }
 
     this.resetPlayback();
-    this.updateHeader(
-      this.battleSession.chapter?.name || this.chapter?.name || '章节战斗',
-      '正在请求后端模拟战斗，返回后会按回合播放文字日志。',
-    );
-    this.updateBattleInfo(
-      '正在请求战斗模拟',
-      buildSessionMeta(this.battleSession, this.chapter),
-      buildSessionDetail(this.battleSession, this.chapter),
-      '后端需要返回 session、hero/enemy 快照、日志数组、最终结果和摘要。',
-      '正在请求后端模拟战斗...',
-    );
-    this.renderLogState('模拟请求中，请稍候...');
-    this.applyMode('simulating', '正在请求后端模拟战斗...');
+    this.latestReport.setText('正在请求战斗模拟');
+    this.latestMeta.setText('当前节奏：等待服务端返回文字战报');
+    this.applyMode('loading', '正在请求战斗模拟');
 
     try {
       const payload = await simulateBattleSession(this.player.account, this.battleSession.id, this.chapterId);
@@ -551,53 +584,32 @@ export default class BattleScene extends BaseScene {
       this.syncSceneState(this.battleSession?.chapterId || this.chapterId);
       this.logEntries = this.simulation.logs.length
         ? this.simulation.logs.slice()
-        : [{
-            id: 'sim-empty',
-            turn: 1,
-            text: '后端未返回回合日志，当前只能直接展示模拟完成状态。',
-            hero: this.simulation.hero,
-            enemy: this.simulation.enemy,
-          }];
+        : [{ id: 'sim-empty', text: '后端未返回回合日志，当前仅展示摘要。' }];
       this.pendingSettlementResult = normalizeBattleResult(this.simulation.result);
-      this.playedLogs = [];
       this.playbackIndex = 0;
-
-      this.updateBattleInfo(
-        `${this.chapter?.name || '当前章节'} 战斗中`,
-        buildSessionMeta(this.battleSession, this.chapter),
-        buildSessionDetail(this.battleSession, this.chapter),
-        `已收到 ${this.logEntries.length} 条回合日志${this.pendingSettlementResult ? `，预计结果：${formatBattleResult(this.pendingSettlementResult)}` : ''}。`,
-        this.autoPlayEnabled ? '战报已生成，正在自动播放。' : '战报已生成，等待手动逐条推进。',
-      );
-      this.updateSnapshots(this.simulation.hero, this.simulation.enemy);
-      this.renderLogState(this.autoPlayEnabled ? '准备自动播放战报...' : '已暂停自动播放，点击“下一回合”开始。');
-      this.applyMode('playback-ready', this.autoPlayEnabled ? '准备自动播放战报。' : '已暂停自动播放。');
+      this.playedLogs = [];
+      this.updateStageSnapshots(this.simulation.hero, this.simulation.enemy);
+      this.updateBuildBar();
+      this.wavePill.label.setText(this.battleSession.waveType || '普通波');
+      this.latestReport.setText(this.logEntries[0]?.text || '战报已生成');
+      this.latestMeta.setText(`当前节奏：已收到 ${this.logEntries.length} 条服务端战报`);
+      this.bannerText.setText('等待波次推进');
+      this.updateSummaryLine();
+      this.applyMode('playback-ready', this.autoPlayEnabled ? '准备自动播放战报' : '等待手动推进');
 
       if (this.autoPlayEnabled) {
         this.startAutoPlayback();
       }
     } catch (error) {
-      const hint = isInterfaceMissing(error)
-        ? '模拟接口尚未就绪，前端已保留真实接入点和错误态。'
-        : '模拟请求失败，请检查后端返回结构或稍后重试。';
-
-      this.updateBattleInfo(
-        '请求战斗模拟失败',
-        buildSessionMeta(this.battleSession, this.chapter),
-        buildSessionDetail(this.battleSession, this.chapter),
-        hint,
-        error.message,
-      );
-      this.renderLogState(isInterfaceMissing(error)
-        ? '等待后端提供 battle simulate 接口。'
-        : '模拟请求失败，暂无战斗日志。');
-      this.applyMode(isInterfaceMissing(error) ? 'simulate-missing' : 'failed', `请求战斗模拟失败：${error.message}`);
+      this.latestReport.setText(isInterfaceMissing(error) ? '模拟接口未就绪' : '战斗模拟失败');
+      this.latestMeta.setText(error.message);
+      this.applyMode(isInterfaceMissing(error) ? 'simulate-missing' : 'failed', error.message);
     }
   }
 
   startAutoPlayback() {
     this.clearTimers();
-    this.applyMode('playback', '正在自动播放战报...');
+    this.applyMode('playback-ready', '正在自动播放战报');
     this.playNextTurn();
 
     if (this.playbackIndex >= this.logEntries.length) {
@@ -609,29 +621,11 @@ export default class BattleScene extends BaseScene {
       loop: true,
       callback: () => {
         this.playNextTurn();
-        if (this.currentMode !== 'playback') {
-          if (this.playbackTimer) {
-            this.playbackTimer.remove(false);
-            this.playbackTimer = null;
-          }
+        if (this.playbackIndex >= this.logEntries.length) {
+          this.clearTimers();
         }
       },
     });
-  }
-
-  toggleAutoPlay() {
-    this.autoPlayEnabled = !this.autoPlayEnabled;
-    this.updateActionButtons();
-
-    if (this.currentMode === 'playback' && !this.autoPlayEnabled) {
-      this.clearTimers();
-      this.applyMode('playback-ready', '已关闭自动播放，可手动逐条推进。');
-      return;
-    }
-
-    if ((this.currentMode === 'playback-ready' || this.currentMode === 'playback') && this.autoPlayEnabled && this.playbackIndex < this.logEntries.length) {
-      this.startAutoPlayback();
-    }
   }
 
   playNextTurn() {
@@ -641,72 +635,65 @@ export default class BattleScene extends BaseScene {
     }
 
     const entry = this.logEntries[this.playbackIndex];
-    this.playedLogs.push(buildLogLine(entry, this.playbackIndex));
+    this.playedLogs.push(entry.text);
     this.playbackIndex += 1;
 
     if (entry.hero || entry.enemy) {
-      this.updateSnapshots(entry.hero || null, entry.enemy || null);
+      this.updateStageSnapshots(entry.hero || null, entry.enemy || null);
     }
     if (entry.result && !this.pendingSettlementResult) {
       this.pendingSettlementResult = normalizeBattleResult(entry.result);
     }
 
-    this.renderLogState(this.playedLogs.slice(-4).join('\n\n'));
+    this.latestReport.setText(entry.text || '战报已更新');
+    this.latestMeta.setText(`当前节奏：最近展示 ${Math.min(this.playedLogs.length, MAX_VISIBLE_LOGS)} 条日志 / 总计 ${this.logEntries.length} 条`);
+    this.bannerText.setText(pickWaveBannerText(entry.text, this.bannerText.text));
+    this.renderRecentLogs();
+    this.updateSummaryLine();
 
     if (this.playbackIndex >= this.logEntries.length) {
       this.finishPlayback();
-      return;
-    }
-
-    if (!this.autoPlayEnabled || this.currentMode !== 'playback') {
-      this.applyMode('playback-ready', '已暂停自动播放，可继续逐条推进。');
+    } else {
+      this.applyMode('playback-ready', this.autoPlayEnabled ? '正在自动播放战报' : '等待手动推进');
     }
   }
 
   finishPlayback() {
-    if (this.currentMode === 'settling') {
-      return;
-    }
-
     this.clearTimers();
-    const summaryLines = buildBattleSummaryLines(this.simulation?.summary, { result: this.pendingSettlementResult });
-    this.summaryText.setText(summaryLines.join('\n'));
-    this.applyMode('playback-finished', '战报播放完成，准备提交结算。');
-
     if (!this.pendingSettlementResult) {
-      this.applyMode('settlement-error', '后端未返回最终结果，无法继续结算。');
-      this.feedback.setText('后端未返回最终结果，无法继续结算。');
+      this.applyMode('settlement-error', '后端未返回最终结果，无法继续结算');
       return;
     }
+
+    this.bannerText.setText(this.pendingSettlementResult === 'victory' ? '本局战斗胜利' : '本局战斗失败');
+    this.latestMeta.setText(`当前节奏：战报播放完成，准备提交${formatBattleResult(this.pendingSettlementResult)}结算`);
+    this.updateSummaryLine();
+    this.applyMode('playback-ready', '战报播放完成，准备结算');
 
     this.settleTimer = this.time.delayedCall(SETTLE_DELAY, () => {
       this.retrySettlement();
     });
   }
 
-  replaySimulation() {
-    if (!this.simulation) {
+  toggleAutoPlay() {
+    this.autoPlayEnabled = !this.autoPlayEnabled;
+    if (this.autoPlayEnabled && this.playbackIndex < this.logEntries.length) {
+      this.startAutoPlayback();
       return;
     }
-
-    this.resetPlayback({ keepSimulation: true });
-    this.summaryText.setText('');
-    this.renderLogState(this.autoPlayEnabled ? '准备自动重播战报...' : '已重置战报，点击“下一回合”开始。');
-    this.applyMode('playback-ready', this.autoPlayEnabled ? '准备自动重播战报。' : '战报已重置。');
-
-    if (this.autoPlayEnabled) {
-      this.startAutoPlayback();
-    }
+    this.clearTimers();
+    this.applyMode('playback-ready', this.autoPlayEnabled ? '已切回自动播放' : '已切到手动推进');
   }
 
   async retrySettlement() {
     if (!this.pendingSettlementResult) {
-      this.applyMode('settlement-error', '缺少战斗结果，无法提交结算。');
+      this.applyMode('settlement-error', '缺少战斗结果，无法结算');
       return;
     }
 
     this.clearTimers();
-    this.applyMode('settling', `正在提交${formatBattleResult(this.pendingSettlementResult)}结算...`);
+    this.showSettlementOverlay(`正在提交${formatBattleResult(this.pendingSettlementResult)}结算`);
+    this.applyMode('loading', `正在提交${formatBattleResult(this.pendingSettlementResult)}结算`);
 
     try {
       const payload = await settleBattleSession(this.player.account, this.pendingSettlementResult);
@@ -715,12 +702,12 @@ export default class BattleScene extends BaseScene {
       await refreshHomeOverview(this.player.account).catch(() => null);
       this.syncSceneState(settlement.profile?.currentChapterId || this.chapterId);
       setBattleSettlement(settlement);
+      this.closeOverlay();
       this.scene.start('ResultScene');
     } catch (error) {
-      const summaryLines = buildBattleSummaryLines(this.simulation?.summary, { result: this.pendingSettlementResult });
-      this.summaryText.setText(summaryLines.join('\n'));
+      this.closeOverlay();
       this.applyMode('settlement-error', `结算失败：${error.message}`);
-      this.feedback.setText(`结算失败：${error.message}`);
+      this.latestMeta.setText(`当前节奏：${error.message}`);
     }
   }
 }

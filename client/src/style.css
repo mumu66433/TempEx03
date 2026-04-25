@@ -4,7 +4,7 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background: #020816;
+  background: linear-gradient(180deg, #102033 0%, #17314a 45%, #2b5c7a 100%);
 }
 
 body {
@@ -35,8 +35,8 @@ body {
   height: 1624px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 14%, rgba(56, 189, 248, 0.18), transparent 28%),
-    linear-gradient(180deg, #050816 0%, #030712 100%);
+    radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.12), transparent 16%),
+    linear-gradient(180deg, #102033 0%, #17314a 45%, #2b5c7a 100%);
 }
 
 .game-stage {

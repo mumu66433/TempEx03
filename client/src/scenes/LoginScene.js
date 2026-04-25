@@ -1,92 +1,95 @@
 import BaseScene from './BaseScene.js';
-import { createAvatar, createButton, createPill, drawRoundedPanel, makeLabel, makeThemeText } from '../utils/ui.js';
+import {
+  V0_COLORS,
+  createV0Button,
+  drawV0Panel,
+  makeV0Text,
+} from '../utils/v0ui.js';
 import { getCurrentPlayer, getSession, refreshPlayerSession } from '../data/session.js';
 
 export default class LoginScene extends BaseScene {
-  constructor() {
-    super('LoginScene');
-  }
-
   async create() {
-    const { width, height } = this.scale;
     this.addBackground('login');
-    this.addTopBar('游戏入口页', '登录成功后进入 V0 主流程');
 
+    const { width } = this.scale;
     const player = getCurrentPlayer();
     const session = getSession();
-    const status = makeLabel(this, width / 2, 1322, '正在读取最新玩家资料...', {
-      fontSize: '17px',
-      color: '#94a3b8',
+
+    const statusText = makeV0Text(this, width / 2, 1516, '正在读取最新玩家资料...', {
+      fontSize: '18px',
+      color: 'rgba(255,255,255,0.72)',
     });
 
     try {
       if (player.account) {
         await refreshPlayerSession(player.account);
       }
-      status.setText('资料已同步，可以进入章节页继续体验。');
+      statusText.setText('资料已同步，可以继续进入游戏。');
     } catch (error) {
-      status.setText(`资料同步失败：${error.message}`);
-      status.setColor('#fca5a5');
+      statusText.setText(`资料同步失败：${error.message}`);
     }
 
     const effectivePlayer = getCurrentPlayer();
 
-    createAvatar(this, 120, 206, 82, '侠');
-    makeThemeText(this, 210, 184, effectivePlayer.nickname || effectivePlayer.name || '少侠', {
+    makeV0Text(this, 375, 86, '游戏入口', {
       fontSize: '34px',
-      color: '#f8fafc',
-      fontStyle: 'bold',
+      fontStyle: '700',
+      color: '#ffffff',
+    });
+    makeV0Text(this, 375, 126, 'V0 仅承接登录后的入口，不新增复杂活动入口', {
+      fontSize: '20px',
+      color: 'rgba(255,255,255,0.72)',
+    });
+    makeV0Text(this, 375, 248, '江湖风云起，一剑定乾坤', {
+      fontSize: '26px',
+      color: 'rgba(255,255,255,0.78)',
+    });
+
+    this.add.circle(375, 426, 116, 0xffffff, 0.1).setStrokeStyle(2, 0xffffff, 0.28);
+    makeV0Text(this, 375, 446, '剑', {
+      fontSize: '88px',
+      fontStyle: '700',
+      color: '#ffffff',
+    });
+    makeV0Text(this, 375, 690, '剑侠风云', {
+      fontSize: '84px',
+      fontStyle: '700',
+      color: '#ffffff',
+    });
+    makeV0Text(this, 375, 742, 'Roguelike 武侠构筑原型', {
+      fontSize: '28px',
+      color: 'rgba(255,255,255,0.78)',
+    });
+
+    drawV0Panel(this, 375, 1255, 610, 250, {
+      fill: V0_COLORS.panel,
+      stroke: V0_COLORS.panelStroke,
+      radius: 32,
+    });
+    makeV0Text(this, 112, 1194, '当前账号', {
+      fontSize: '26px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
     }).setOrigin(0, 0.5);
-    makeLabel(this, 210, 228, effectivePlayer.account || '未登录账号', {
-      fontSize: '16px',
-      color: '#94a3b8',
+    makeV0Text(this, 112, 1238, effectivePlayer.account || '未登录账号', {
+      fontSize: '24px',
+      color: V0_COLORS.mutedText,
+    }).setOrigin(0, 0.5);
+    makeV0Text(this, 112, 1296, session.backend.ready
+      ? `已解锁至第${effectivePlayer.highestUnlockedChapterId || 1}章，资料同步完成`
+      : 'V0 原型阶段沿用现有账号登录流程', {
+      fontSize: '22px',
+      color: V0_COLORS.mutedText,
+      wordWrap: { width: 470 },
     }).setOrigin(0, 0.5);
 
-    createButton(this, 646, 150, 128, 54, '切换账号', 0x0f172a, 0x94a3b8, () => {
+    createV0Button(this, 375, 1352, 526, 88, '进入游戏', 'primary', () => {
+      this.scene.start('HomeScene');
+    }, { fontSize: '28px' });
+    createV0Button(this, 375, 1456, 526, 72, '切换账号', 'secondary', () => {
       if (typeof window.__openLegacyAuth === 'function') {
         window.__openLegacyAuth();
       }
-    });
-
-    drawRoundedPanel(this, 375, 620, 646, 440, 0x0b1220, 0.82, 0xffffff, 0.06, 36);
-    createPill(this, 174, 438, 120, 40, 'V0 原型', 0x1d4ed8, '#dbeafe');
-    createPill(this, 308, 438, 150, 40, '单分支联调', 0x0f172a, '#cbd5e1');
-    createPill(this, 516, 438, 144, 40, session.backend.ready ? '后端在线' : '后端异常', session.backend.ready ? 0x14532d : 0x7f1d1d, session.backend.ready ? '#bbf7d0' : '#fecaca');
-    makeThemeText(this, 375, 536, '剑侠风云', {
-      fontSize: '60px',
-      color: '#f8fafc',
-      fontStyle: 'bold',
-    });
-    makeLabel(this, 375, 596, '章节推进 + 自动战斗 + 功法三选一', {
-      fontSize: '20px',
-      color: '#cbd5e1',
-    });
-    makeLabel(this, 375, 706, '当前前端先打通登录、章节读取、章节切换与基础流转。', {
-      fontSize: '18px',
-      color: '#94a3b8',
-    });
-    makeLabel(this, 375, 804, `上次停留章节：第 ${effectivePlayer.currentChapterId || 1} 章`, {
-      fontSize: '26px',
-      color: '#f8fafc',
-    });
-    makeLabel(this, 375, 866, `已解锁章节：${effectivePlayer.highestUnlockedChapterId || 1}`, {
-      fontSize: '18px',
-      color: '#7dd3fc',
-    });
-    makeLabel(this, 375, 930, session.backend.message, {
-      fontSize: '15px',
-      color: session.backend.ready ? '#86efac' : '#fca5a5',
-      wordWrap: { width: 520 },
-      align: 'center',
-    });
-
-    createButton(this, width / 2, 1184, 424, 84, '进入章节页', 0x2563eb, 0x7dd3fc, () => {
-      this.scene.start('HomeScene');
-    });
-
-    makeLabel(this, width / 2, height - 166, '如果账号已切换，本页会重新同步玩家资料并覆盖本地展示。', {
-      fontSize: '16px',
-      color: '#94a3b8',
-    });
+    }, { fontSize: '28px' });
   }
 }

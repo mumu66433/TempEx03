@@ -1,41 +1,61 @@
 import BaseScene from './BaseScene.js';
-import { createButton, createPill, drawRoundedPanel, makeLabel, makeThemeText } from '../utils/ui.js';
-import { buildBattleSummaryLines, formatBattleResult } from '../data/battle.js';
+import {
+  V0_COLORS,
+  createV0Button,
+  drawV0Panel,
+  makeV0Text,
+} from '../utils/v0ui.js';
 import { getSession, setBattleSettlement } from '../data/session.js';
 
-function buildSettlementLines(settlement, battleSession, profile, simulation) {
-  return [
-    `结算结果：${formatBattleResult(settlement?.result || battleSession?.result)}`,
-    `会话状态：${battleSession?.status || '-'}`,
-    `当前章节：${profile?.currentChapterId ?? '-'}`,
-    `最高解锁：${profile?.highestUnlockedChapterId ?? '-'}`,
-    `日志条数：${simulation?.logs?.length ?? 0}`,
-  ].join('\n');
+function buildRecordLines(settlement) {
+  const logs = Array.isArray(settlement?.simulation?.logs) ? settlement.simulation.logs : [];
+  const directLines = logs
+    .map((entry) => entry?.text)
+    .filter(Boolean);
+
+  if (directLines.length) {
+    return directLines.slice(-4);
+  }
+
+  const summaryText = settlement?.settlement?.summaryText || settlement?.summary?.text;
+  if (summaryText) {
+    return [summaryText];
+  }
+
+  return ['当前没有可展示的本局战报摘要。'];
 }
 
-function buildProgressHint(settlement) {
-  const currentChapter = settlement?.settlement?.currentChapter;
+function buildOutcomeLines(settlement, victory) {
+  const rewards = settlement?.rewards || settlement?.simulation?.rewards || null;
   const unlockedChapter = settlement?.settlement?.justUnlockedChapter;
-  const nextAction = settlement?.settlement?.nextAction;
+  const currentChapter = settlement?.settlement?.currentChapter;
+  const summaryLines = [];
 
-  const parts = [];
-  if (currentChapter?.name) {
-    parts.push(`当前进度：第 ${currentChapter.id} 章 · ${currentChapter.name}`);
+  if (typeof rewards?.coin === 'number') {
+    summaryLines.push(`铜钱 +${rewards.coin}`);
   }
-  if (unlockedChapter?.name) {
-    parts.push(`新解锁：第 ${unlockedChapter.id} 章 · ${unlockedChapter.name}`);
+  if (typeof rewards?.exp === 'number') {
+    summaryLines.push(`功法经验 +${rewards.exp}`);
   }
-  if (nextAction) {
-    parts.push(nextAction);
+
+  if (victory) {
+    if (unlockedChapter?.name) {
+      summaryLines.push(`章节进度：第${unlockedChapter.id}章已开放`);
+    } else if (currentChapter?.name) {
+      summaryLines.push(`章节进度：当前可挑战第${currentChapter.id}章`);
+    }
+  } else {
+    summaryLines.push('建议提升：生命向功法优先');
   }
-  return parts.join('\n');
+
+  if (!summaryLines.length) {
+    summaryLines.push(victory ? '章节进度已同步到最新解锁状态' : '可返回章节页继续准备后再试一次');
+  }
+
+  return summaryLines.slice(0, 4);
 }
 
 export default class ResultScene extends BaseScene {
-  constructor() {
-    super('ResultScene');
-  }
-
   create() {
     this.addBackground('battle');
 
@@ -46,98 +66,115 @@ export default class ResultScene extends BaseScene {
     }
 
     const battleSession = settlement.session || null;
-    const profile = settlement.profile || null;
-    const simulation = settlement.simulation || null;
     const victory = (settlement.result || battleSession?.result) === 'victory';
-    const summaryLines = buildBattleSummaryLines(settlement.summary || settlement.settlement?.summary || simulation?.summary, {
-      result: settlement.result || battleSession?.result,
+    const currentChapter = settlement?.settlement?.currentChapter || battleSession?.chapter || null;
+    const recordLines = buildRecordLines(settlement);
+    const outcomeLines = buildOutcomeLines(settlement, victory);
+    const introText = settlement?.settlement?.summaryText
+      || settlement?.summary?.text
+      || (victory ? 'V0 文字战斗验证通过：流程已从战斗页稳定回流到章节推进。' : 'V0 文字战斗失败回流已打通，可继续重试与返回章节。');
+
+    drawV0Panel(this, 375, 784, 618, 1160, {
+      fill: V0_COLORS.panel,
+      stroke: V0_COLORS.panelStroke,
+      radius: 40,
     });
 
-    this.addTopBar(victory ? '通关结算' : '失败结算', '结果页承接模拟摘要、回合日志统计与章节进度回流');
-    drawRoundedPanel(this, 375, 488, 646, 820, victory ? 0x082f49 : 0x2f0b0b, 0.9, 0xffffff, 0.08, 36);
-    createPill(this, 184, 228, 132, 40, victory ? '结算成功' : '结算完成', victory ? 0x14532d : 0x7f1d1d, victory ? '#bbf7d0' : '#fecaca');
-    createPill(this, 350, 228, 176, 40, battleSession?.status === 'settled' ? '会话已落库' : '状态待确认', 0x111827, '#e2e8f0');
-
-    makeThemeText(this, 375, 334, victory ? '挑战成功' : '挑战失败', {
-      fontSize: '52px',
-      color: '#f8fafc',
-      fontStyle: 'bold',
+    this.add.circle(375, 372, 88, victory ? V0_COLORS.green : V0_COLORS.red, 0.14)
+      .setStrokeStyle(3, victory ? V0_COLORS.green : V0_COLORS.red, 1);
+    makeV0Text(this, 375, 394, victory ? '胜利' : '失败', {
+      fontSize: '56px',
+      fontStyle: '700',
+      color: victory ? '#5cbf75' : '#d96b6b',
     });
-    makeLabel(this, 375, 404, battleSession?.chapter?.name
-      ? `章节：第 ${battleSession.chapterId} 章 · ${battleSession.chapter.name}`
-      : '当前结算未附带章节名', {
+    makeV0Text(this, 375, 494, victory ? '章节通关' : '挑战失败', {
+      fontSize: '42px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    });
+    makeV0Text(this, 375, 540, victory
+      ? `第${battleSession?.chapterId || currentChapter?.id || 1}章 ${battleSession?.chapter?.name || currentChapter?.name || '当前章节'} 已完成挑战`
+      : '止步于当前波次，可返回继续养成', {
+      fontSize: '24px',
+      color: V0_COLORS.mutedText,
+      wordWrap: { width: 520 },
+    });
+    makeV0Text(this, 375, 578, introText, {
       fontSize: '20px',
-      color: '#cbd5e1',
+      color: V0_COLORS.mutedText,
+      wordWrap: { width: 530 },
     });
-    makeLabel(this, 375, 540, buildSettlementLines(settlement, battleSession, profile, simulation), {
+
+    drawV0Panel(this, 375, 765, 530, 246, {
+      fill: 0xf4ece0,
+      stroke: V0_COLORS.panelStroke,
+      radius: 28,
+    });
+    makeV0Text(this, 142, 700, '本局战报摘要', {
+      fontSize: '28px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    }).setOrigin(0, 0.5);
+    makeV0Text(this, 142, 742, recordLines.join('\n'), {
       fontSize: '22px',
-      color: '#f8fafc',
-      align: 'center',
-      lineSpacing: 18,
-      wordWrap: { width: 460 },
-    });
+      color: V0_COLORS.mutedText,
+      align: 'left',
+      lineSpacing: 16,
+      wordWrap: { width: 470 },
+    }).setOrigin(0, 0);
 
-    drawRoundedPanel(this, 375, 808, 560, 208, 0x0b1220, 0.78, 0xffffff, 0.06, 28);
-    makeThemeText(this, 375, 706, '模拟摘要', {
-      fontSize: '26px',
-      color: '#f8fafc',
-      fontStyle: 'bold',
+    drawV0Panel(this, 375, 1005, 530, 186, {
+      fill: 0xf8f2e8,
+      stroke: V0_COLORS.panelStroke,
+      radius: 28,
     });
-    makeLabel(this, 375, 810, summaryLines.length ? summaryLines.join('\n') : '本次结算未返回额外摘要，结果页已回退到基础结算信息。', {
-      fontSize: '18px',
-      color: '#7dd3fc',
-      wordWrap: { width: 460 },
-      align: 'center',
-      lineSpacing: 14,
-    });
+    makeV0Text(this, 142, 970, victory ? '章节推进结果' : '失败复盘', {
+      fontSize: '28px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    }).setOrigin(0, 0.5);
+    makeV0Text(this, 142, 1012, outcomeLines.join('\n'), {
+      fontSize: '24px',
+      color: V0_COLORS.mutedText,
+      align: 'left',
+      lineSpacing: 16,
+      wordWrap: { width: 470 },
+    }).setOrigin(0, 0);
 
-    makeLabel(this, 375, 980, buildProgressHint(settlement) || (victory
-      ? '本次胜利应已推动章节进度；如未变化，请继续和后端核对结算回流。'
-      : '本次失败不会推进章节，可返回章节页重新挑战。'), {
-      fontSize: '17px',
-      color: '#94a3b8',
-      wordWrap: { width: 500 },
-      align: 'center',
-      lineSpacing: 12,
-    });
+    const primaryText = victory ? '返回章节' : '再试一次';
+    const secondaryText = victory ? '继续查看功法' : '返回章节';
 
-    createButton(this, 375, 1172, 360, 76, victory ? '返回章节页查看新章节' : '返回章节页', 0x2563eb, 0x7dd3fc, () => {
+    const primaryButton = createV0Button(this, 375, 1184, 530, 88, primaryText, 'primary', () => {
       setBattleSettlement(null);
-      this.scene.start('HomeScene');
-    });
-    createButton(this, 375, 1268, 360, 68, victory ? '继续前往下一章' : '再次挑战当前章节', 0x0f172a, 0x94a3b8, () => {
+      this.scene.start(victory ? 'HomeScene' : 'BattleScene');
+    }, { fontSize: '28px', radius: 22 });
+    const secondaryButton = createV0Button(this, 375, 1280, 530, 72, secondaryText, 'secondary', () => {
       setBattleSettlement(null);
-      this.scene.start('BattleScene');
-    });
+      this.scene.start(victory ? 'SkillScene' : 'HomeScene');
+    }, { fontSize: '28px', radius: 22 });
   }
 
   renderMissingState() {
-    this.addTopBar('结算页', '当前没有可展示的结算结果');
-    drawRoundedPanel(this, 375, 520, 646, 620, 0x0f172a, 0.9, 0xffffff, 0.08, 36);
-    makeThemeText(this, 375, 360, '暂无结算数据', {
+    drawV0Panel(this, 375, 520, 646, 620, {
+      fill: V0_COLORS.panel,
+      stroke: V0_COLORS.panelStroke,
+      radius: 36,
+    });
+    makeV0Text(this, 375, 360, '暂无结算数据', {
       fontSize: '44px',
-      color: '#f8fafc',
-      fontStyle: 'bold',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
     });
-    makeLabel(this, 375, 496, '可能是直接进入了结果页，或上一轮结算数据已经被清空。', {
+    makeV0Text(this, 375, 496, '可能是直接进入了结果页，或上一轮结算数据已被清空。', {
       fontSize: '20px',
-      color: '#cbd5e1',
-      wordWrap: { width: 460 },
-      align: 'center',
-      lineSpacing: 12,
-    });
-    makeLabel(this, 375, 612, '请返回章节页重新开始战斗，或重新进入战斗页拉取最新会话。', {
-      fontSize: '18px',
-      color: '#94a3b8',
+      color: V0_COLORS.mutedText,
       wordWrap: { width: 480 },
-      align: 'center',
-      lineSpacing: 10,
     });
-    createButton(this, 375, 860, 360, 72, '返回章节页', 0x2563eb, 0x7dd3fc, () => {
+    createV0Button(this, 375, 860, 360, 72, '返回章节页', 'primary', () => {
       this.scene.start('HomeScene');
-    });
-    createButton(this, 375, 950, 360, 68, '返回战斗页', 0x0f172a, 0x94a3b8, () => {
+    }, { fontSize: '28px' });
+    createV0Button(this, 375, 950, 360, 68, '返回战斗页', 'secondary', () => {
       this.scene.start('BattleScene');
-    });
+    }, { fontSize: '24px' });
   }
 }

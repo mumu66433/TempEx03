@@ -163,6 +163,23 @@ function normalizeSummary(summary) {
   };
 }
 
+function normalizeRewards(source) {
+  if (!source || typeof source !== 'object') {
+    return null;
+  }
+
+  const coin = toNumber(firstDefined(source.coin, source.gold, source.money));
+  const exp = toNumber(firstDefined(source.exp, source.experience));
+  if (coin === null && exp === null) {
+    return null;
+  }
+
+  return {
+    coin,
+    exp,
+  };
+}
+
 export function normalizeBattleSimulation(payload, fallbackSession = null) {
   const root = payload?.simulation && typeof payload.simulation === 'object'
     ? payload.simulation
@@ -243,6 +260,7 @@ export function normalizeBattleSimulation(payload, fallbackSession = null) {
     enemy,
     logs,
     summary,
+    rewards: normalizeRewards(firstDefined(payload?.rewards, root.rewards)),
     result,
     raw: payload,
   };
@@ -264,6 +282,7 @@ export function normalizeBattleSettlement(payload, simulation = null) {
     ...(payload || {}),
     session,
     summary: summary || summaryFromText,
+    rewards: normalizeRewards(firstDefined(payload?.rewards, payload?.settlement?.rewards, simulation?.rewards)),
     result,
     simulation: simulation
         ? {

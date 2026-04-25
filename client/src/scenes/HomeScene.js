@@ -1,40 +1,78 @@
 import BaseScene from './BaseScene.js';
 import {
-  createAvatar,
-  createBottomTabs,
-  createButton,
-  createPill,
-  drawRoundedPanel,
-  makeLabel,
-  makeThemeText,
-} from '../utils/ui.js';
-import { getCurrentPlayer, getSession, refreshHomeOverview, refreshPlayerSession, selectCurrentChapter } from '../data/session.js';
+  V0_COLORS,
+  createV0Avatar,
+  createV0Button,
+  createV0CardChip,
+  createV0Pill,
+  createV0Tabs,
+  createV0VerticalCard,
+  drawV0Panel,
+  makeV0Text,
+} from '../utils/v0ui.js';
+import {
+  getCurrentPlayer,
+  getSession,
+  refreshHomeOverview,
+  refreshPlayerSession,
+  selectCurrentChapter,
+} from '../data/session.js';
+
+function buildTopMeta(player, overview) {
+  return overview?.display?.playerMeta || `${player.account || '未登录账号'} / 已解锁至第${player.highestUnlockedChapterId || 1}章`;
+}
 
 function buildChapterSummary(chapter) {
   if (!chapter) {
-    return '请稍候，正在向后端同步章节和玩家进度。';
+    return '章节加载中';
   }
 
-  const detailParts = [
-    `关卡组 ${chapter.missionId || '-'}`,
-    `关卡数 ${chapter.missionCount || '-'}`,
-    `预计波次 ${chapter.totalWaveEstimate || '-'}`,
-  ];
-  return detailParts.join(' · ');
+  return [
+    `${chapter.missionCount || 5} 层`,
+    `${chapter.totalWaveEstimate || '-'} 波`,
+    `推荐生命 ${chapter.guessHeroLife ?? '-'}`,
+    `推荐攻击 ${chapter.guessHeroAtk ?? '-'}`,
+  ].join(' / ');
 }
 
-function buildChapterDetail(chapter) {
+function buildChapterStatus(chapter, overview) {
   if (!chapter) {
-    return '等待章节数据返回';
+    return { tag: '加载中', hint: '请稍候，正在读取章节配置。' };
+  }
+  if (!chapter.unlocked) {
+    return { tag: '未解锁', hint: '通关上一章后解锁' };
+  }
+  if (chapter.isCurrent) {
+    return { tag: '当前章节', hint: '当前可直接进入战斗' };
   }
 
-  const lines = [
-    `章节名：${chapter.name || '未命名章节'}`,
-    `推荐生命：${chapter.guessHeroLife ?? '-'}`,
-    `推荐攻击：${chapter.guessHeroAtk ?? '-'}`,
-    `普通波规则：${chapter.normalWaveRule || '-'}`,
-  ];
-  return lines.join('\n');
+  const highest = overview?.highestUnlockedChapterId || 1;
+  return {
+    tag: '已解锁',
+    hint: Number(chapter.id) > Number(highest) ? '推荐战力不足，仍可挑战' : '点击卡片可切换为当前预览章节',
+  };
+}
+
+function buildChapterPreview(chapter) {
+  if (!chapter) {
+    return '读取中';
+  }
+
+  if (!chapter.unlocked) {
+    return '等待解锁';
+  }
+
+  return chapter.name || `第${chapter.id}章`;
+}
+
+function buildHomeSummary(overview) {
+  if (!overview) {
+    return '正在同步首页摘要';
+  }
+
+  const currentTitle = overview?.currentChapter?.title || overview?.chapterOverview?.currentChapterTitle || '当前章节';
+  const skillSummary = overview?.skillSummary || {};
+  return `当前章节：${currentTitle} · 功法已解锁 ${skillSummary.unlocked ?? '-'} / ${skillSummary.total ?? '-'} · 可升级 ${skillSummary.upgradeable ?? '-'}`;
 }
 
 export default class HomeScene extends BaseScene {
@@ -43,113 +81,86 @@ export default class HomeScene extends BaseScene {
     this.selectedChapterId = null;
     this.feedbackTimer = null;
     this.homeOverview = null;
+    this.cardNodes = [];
   }
 
   async create() {
     this.addBackground('home');
-    this.addTopBar('章节页', '真实读取玩家资料和章节进度');
     this.renderFrame();
     await this.loadChapterOverview();
   }
 
   renderFrame() {
-    createAvatar(this, 88, 152, 68, '侠');
-    this.playerName = makeThemeText(this, 152, 138, '少侠', {
-      fontSize: '28px',
-      color: '#f8fafc',
-      fontStyle: 'bold',
-    }).setOrigin(0, 0.5);
-    this.playerMeta = makeLabel(this, 152, 176, '正在同步资料', {
-      fontSize: '15px',
-      color: '#94a3b8',
-    }).setOrigin(0, 0.5);
+    const player = getCurrentPlayer();
 
-    createButton(this, 618, 146, 110, 48, '调试', 0x111827, 0x94a3b8, () => {
-      this.showFeedback('调试面板待下一轮接入。');
+    this.topPanel = drawV0Panel(this, 375, 250, 686, 180, {
+      fill: V0_COLORS.panel,
+      stroke: V0_COLORS.panelStroke,
+      radius: 32,
     });
-    createButton(this, 646, 214, 128, 48, '切换账号', 0x111827, 0x94a3b8, () => {
+    createV0Avatar(this, 116, 250, 46, '铁');
+    this.playerName = makeV0Text(this, 182, 230, player.nickname || player.name || '少侠', {
+      fontSize: '30px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    }).setOrigin(0, 0.5);
+    this.playerMeta = makeV0Text(this, 182, 272, '正在同步资料', {
+      fontSize: '22px',
+      color: V0_COLORS.mutedText,
+    }).setOrigin(0, 0.5);
+    createV0Pill(this, 608, 236, 132, 52, 'V0 原型', {
+      fill: 0xffe7a8,
+      color: V0_COLORS.darkText,
+      fontSize: '22px',
+    });
+    this.debugButton = createV0Button(this, 580, 294, 106, 42, '调试', 'muted', () => {
+      this.showFeedback('调试面板待后续接入。');
+    }, { radius: 16, fontSize: '20px' });
+    this.switchButton = createV0Button(this, 660, 294, 112, 42, '切换账号', 'secondary', () => {
       if (typeof window.__openLegacyAuth === 'function') {
         window.__openLegacyAuth();
       }
+    }, { radius: 16, fontSize: '18px' });
+
+    this.mainPanel = createV0VerticalCard(this, 375, 840, 686, 920, {
+      fill: V0_COLORS.panel,
+      stroke: V0_COLORS.panelStroke,
+      radius: 36,
     });
-
-    drawRoundedPanel(this, 375, 434, 646, 168, 0x0b1220, 0.86, 0xffffff, 0.06, 30);
-    makeLabel(this, 128, 366, '当前章节', {
-      fontSize: '15px',
-      color: '#94a3b8',
+    makeV0Text(this, 72, 450, '章节选择', {
+      fontSize: '34px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
     }).setOrigin(0, 0.5);
-    this.currentBadge = createPill(this, 118, 432, 104, 38, '加载中', 0x1d4ed8, '#dbeafe');
-    this.chapterTitle = makeThemeText(this, 184, 428, '正在读取章节数据', {
-      fontSize: '32px',
-      color: '#f8fafc',
-      fontStyle: 'bold',
-    }).setOrigin(0, 0.5);
-    this.chapterSummary = makeLabel(this, 184, 474, '请稍候，正在向后端同步章节和玩家进度。', {
-      fontSize: '16px',
-      color: '#cbd5e1',
-      wordWrap: { width: 430 },
-    }).setOrigin(0, 0.5);
-
-    drawRoundedPanel(this, 375, 804, 646, 514, 0x0f172a, 0.88, 0xffffff, 0.06, 30);
-    makeThemeText(this, 106, 580, '章节列表', {
+    this.mainSubtitle = makeV0Text(this, 72, 492, 'V0 开放章节读取与章节推进', {
       fontSize: '22px',
-      color: '#f8fafc',
-      fontStyle: 'bold',
+      color: V0_COLORS.mutedText,
     }).setOrigin(0, 0.5);
-    makeLabel(this, 375, 628, '当前已支持：加载中 / 失败重试 / 未解锁提示 / 章节切换同步。', {
-      fontSize: '15px',
-      color: '#94a3b8',
-    });
 
-    this.chapterListGroup = this.add.container(0, 0);
-    this.sectionState = makeLabel(this, 375, 804, '章节加载中...', {
+    this.currentCard = this.add.container(0, 0);
+    this.chapterList = this.add.container(0, 0);
+    this.stateGroup = this.add.container(0, 0);
+    this.feedbackText = makeV0Text(this, 375, 1400, '', {
       fontSize: '18px',
-      color: '#cbd5e1',
+      color: '#fff5d6',
     });
-    this.retryButton = createButton(this, 375, 870, 180, 64, '重新加载', 0x1d4ed8, 0x7dd3fc, () => {
+
+    this.stateTitle = makeV0Text(this, 375, 838, '章节加载中', {
+      fontSize: '32px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    });
+    this.stateDesc = makeV0Text(this, 375, 890, '正在读取服务端章节配置', {
+      fontSize: '22px',
+      color: V0_COLORS.mutedText,
+      wordWrap: { width: 440 },
+    });
+    this.retryButton = createV0Button(this, 375, 982, 220, 72, '重试', 'primary', () => {
       this.loadChapterOverview();
-    });
-    this.retryButton.container.setVisible(false);
+    }, { fontSize: '26px' });
+    this.stateGroup.add([this.stateTitle, this.stateDesc, this.retryButton.container]);
 
-    drawRoundedPanel(this, 375, 1298, 646, 250, 0x0b1220, 0.8, 0xffffff, 0.06, 30);
-    this.chapterHint = makeLabel(this, 375, 1236, '已选中章节详情会显示在这里。', {
-      fontSize: '16px',
-      color: '#94a3b8',
-    });
-    this.chapterDetail = makeLabel(this, 375, 1304, '等待章节数据返回', {
-      fontSize: '20px',
-      color: '#f8fafc',
-      wordWrap: { width: 520 },
-      align: 'center',
-    });
-    this.chapterWarning = makeLabel(this, 375, 1376, '', {
-      fontSize: '16px',
-      color: '#fde68a',
-      wordWrap: { width: 520 },
-      align: 'center',
-    });
-
-    this.startButton = createButton(this, 375, 1470, 352, 82, '开始战斗', 0x2563eb, 0x7dd3fc, () => {
-      if (!this.selectedChapter?.unlocked) {
-        this.showFeedback('该章节尚未解锁。');
-        return;
-      }
-      this.scene.start('BattleScene');
-    });
-
-    this.homeSummary = makeLabel(this, 375, 1416, '', {
-      fontSize: '15px',
-      color: '#94a3b8',
-      wordWrap: { width: 520 },
-      align: 'center',
-    });
-
-    this.feedbackText = makeLabel(this, 375, 1544, '', {
-      fontSize: '15px',
-      color: '#94a3b8',
-    });
-
-    createBottomTabs(this, 'chapter', (tab) => {
+    createV0Tabs(this, 'chapter', (tab) => {
       if (tab === 'skill') {
         this.scene.start('SkillScene');
         return;
@@ -164,140 +175,195 @@ export default class HomeScene extends BaseScene {
   async loadChapterOverview() {
     const player = getCurrentPlayer();
     this.playerName.setText(player.nickname || player.name || '少侠');
-    this.playerMeta.setText(player.account ? `${player.account} · 正在读取最新章节进度` : '尚未登录');
-    this.sectionState.setVisible(true);
-    this.sectionState.setText('章节加载中...');
-    this.retryButton.container.setVisible(false);
-    this.clearChapterCards();
+    this.playerMeta.setText(player.account ? `${player.account} / 正在同步章节进度` : '尚未登录');
+    this.showState('章节加载中', '正在读取服务端章节配置');
+    this.clearCards();
 
     try {
       await refreshPlayerSession(player.account);
       this.homeOverview = await refreshHomeOverview(player.account).catch(() => null);
-      this.renderChapterOverview();
+      this.renderOverview();
     } catch (error) {
-      this.sectionState.setText(`加载失败：${error.message}`);
-      this.retryButton.container.setVisible(true);
-      this.chapterTitle.setText('章节读取失败');
-      this.chapterSummary.setText('请确认后端已启动、账号已存在，或者点击下方按钮重试。');
-      this.currentBadge.list[1].setText('失败');
-      this.chapterDetail.setText('当前无法读取章节列表。\n如果后端离线，这属于接口失败；如果后端在线但无章节配置，这会在下一步显示为空数据。');
       const backend = getSession().backend;
-      this.chapterWarning.setText(backend.ready ? '后端在线，但当前请求未成功，请检查账号或接口返回。' : `后端不可用：${backend.message}`);
-      this.homeSummary.setText('当前无法读取首页摘要。');
+      this.showState('章节加载失败', backend.ready ? '请检查网络或稍后重试' : backend.message, true);
+      this.mainSubtitle.setText('当前无法进入章节主流程');
+      this.playerMeta.setText(player.account ? `${player.account} / 资料同步失败` : '尚未登录');
+      this.showFeedback(`章节加载失败：${error.message}`);
     }
   }
 
-  renderChapterOverview() {
+  renderOverview() {
+    const player = getCurrentPlayer();
     const session = getSession();
     const overview = session.chapterOverview;
-    const player = getCurrentPlayer();
     const chapters = Array.isArray(overview?.chapters) ? overview.chapters : [];
 
     this.playerName.setText(player.nickname || player.name || '少侠');
-    this.playerMeta.setText(`${player.account} · 已解锁至第 ${player.highestUnlockedChapterId || 1} 章`);
-    this.homeSummary.setText(this.buildHomeSummary());
+    this.playerMeta.setText(buildTopMeta(player, this.homeOverview));
+    this.mainSubtitle.setText(buildHomeSummary(this.homeOverview));
 
     if (!chapters.length) {
-      this.sectionState.setVisible(true);
-      this.sectionState.setText('暂无章节配置，请检查服务端配置。');
-      this.chapterTitle.setText('无可用章节');
-      this.chapterSummary.setText('后端未返回有效章节配置，当前无法进入战斗。');
-      this.currentBadge.list[1].setText('空数据');
-      this.chapterDetail.setText('暂无章节配置，请检查 `/api/config/chapter`。');
-      this.chapterWarning.setText('这是 README 约定的空态：前端不生成假章节。');
-      this.startButton.container.setAlpha(0.5);
-      this.homeSummary.setText(this.buildHomeSummary());
+      this.showState('暂无章节配置', '请检查服务端章节配置后重试');
       return;
     }
 
-    this.sectionState.setVisible(false);
-    this.selectedChapterId = this.selectedChapterId && chapters.some((item) => Number(item.id) === Number(this.selectedChapterId))
+    this.hideState();
+    this.selectedChapterId = this.selectedChapterId && chapters.some((chapter) => Number(chapter.id) === Number(this.selectedChapterId))
       ? this.selectedChapterId
       : overview.currentChapterId;
-    this.renderChapterCards(chapters);
-    this.selectChapter(this.selectedChapterId, { silent: true });
+    this.renderChapters(chapters);
   }
 
-  clearChapterCards() {
-    this.chapterListGroup.removeAll(true);
-  }
+  renderChapters(chapters) {
+    const current = chapters.find((chapter) => Number(chapter.id) === Number(this.selectedChapterId)) || chapters[0];
+    this.selectedChapter = current;
+    this.currentCard.removeAll(true);
+    this.chapterList.removeAll(true);
 
-  renderChapterCards(chapters) {
-    this.clearChapterCards();
-    chapters.slice(0, 4).forEach((chapter, index) => {
-      const y = 716 + index * 116;
-      const isSelected = Number(chapter.id) === Number(this.selectedChapterId);
-      const fill = chapter.unlocked ? (isSelected ? 0x1d4ed8 : 0x111827) : 0x0f172a;
-      const alpha = chapter.unlocked ? 1 : 0.48;
-      const bg = this.add.rectangle(375, y, 586, 92, fill, alpha)
-        .setStrokeStyle(2, chapter.isCurrent ? 0xf59e0b : 0x475569, chapter.isCurrent ? 0.7 : 0.4);
-      const title = this.add.text(112, y - 18, `第 ${chapter.id} 章 · ${chapter.name}`, {
-        fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
+    const currentBg = createV0VerticalCard(this, 375, 665, 606, 250, {
+      fill: V0_COLORS.panel,
+      stroke: V0_COLORS.panelStroke,
+      radius: 28,
+      fillAlpha: current.unlocked ? 1 : 0.78,
+      strokeAlpha: current.unlocked ? 1 : 0.7,
+    });
+    this.currentCard.add(currentBg);
+
+    const status = buildChapterStatus(current, getSession().chapterOverview);
+    const tagFill = current.unlocked ? 0xffe7a8 : 0xf4ece0;
+    const tag = createV0Pill(this, 142, 582, 92, 40, status.tag, {
+      fill: tagFill,
+      fontSize: '18px',
+      color: V0_COLORS.darkText,
+      radius: 16,
+    });
+    const title = makeV0Text(this, 100, 636, `第${current.id}章 ${current.name || '未命名章节'}`, {
+      fontSize: '30px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    }).setOrigin(0, 0.5);
+    const summary = makeV0Text(this, 100, 684, buildChapterSummary(current), {
+      fontSize: '22px',
+      color: V0_COLORS.mutedText,
+    }).setOrigin(0, 0.5);
+    const preview = createV0VerticalCard(this, 518, 665, 220, 150, {
+      fill: 0xede3d1,
+      stroke: V0_COLORS.panelStroke,
+      radius: 24,
+    });
+    const previewText = makeV0Text(this, 518, 675, buildChapterPreview(current), {
+      fontSize: '34px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+      wordWrap: { width: 170 },
+    });
+    const hint = makeV0Text(this, 375, 792, status.hint, {
+      fontSize: '18px',
+      color: current.unlocked ? '#826a44' : '#9f6d65',
+    });
+    const startButton = createV0Button(this, 375, 856, 562, 84, current.unlocked ? '开始战斗' : '尚未解锁', current.unlocked ? 'primary' : 'muted', () => {
+      this.handleStartBattle();
+    }, { fontSize: '28px' });
+    startButton.setEnabled(current.unlocked);
+    this.currentCard.add([
+      tag.container,
+      title,
+      summary,
+      preview,
+      previewText,
+      hint,
+      startButton.container,
+    ]);
+
+    const extraCards = chapters.filter((chapter) => Number(chapter.id) !== Number(current.id)).slice(0, 2);
+    extraCards.forEach((chapter, index) => {
+      const y = 1002 + index * 162;
+      const alpha = chapter.unlocked ? 1 : 0.72;
+      const card = createV0VerticalCard(this, 375, y, 606, 140, {
+        fill: V0_COLORS.panel,
+        stroke: V0_COLORS.panelStroke,
+        radius: 28,
+        fillAlpha: alpha,
+        strokeAlpha: alpha,
+      });
+      const meta = buildChapterStatus(chapter, getSession().chapterOverview);
+      const tagNode = createV0Pill(this, 142, y - 48, 92, 40, meta.tag, {
+        fill: chapter.unlocked ? 0xffe7a8 : 0xf4ece0,
+        fontSize: '18px',
+        radius: 16,
+      });
+      const titleNode = makeV0Text(this, 100, y - 2, `第${chapter.id}章 ${chapter.name || '未命名章节'}`, {
+        fontSize: '30px',
+        fontStyle: '700',
+        color: V0_COLORS.darkText,
+      }).setOrigin(0, 0.5);
+      const descNode = makeV0Text(this, 100, y + 46, chapter.unlocked
+        ? `已解锁 / 推荐生命 ${chapter.guessHeroLife ?? '-'} / 攻击 ${chapter.guessHeroAtk ?? '-'}`
+        : '通关上一章后解锁', {
         fontSize: '22px',
-        color: '#f8fafc',
-        fontStyle: chapter.isCurrent ? 'bold' : 'normal',
+        color: V0_COLORS.mutedText,
       }).setOrigin(0, 0.5);
-      const meta = this.add.text(112, y + 16, chapter.unlocked ? (chapter.isCurrent ? '当前章节 · 可挑战' : '已解锁 · 点击切换') : '未解锁 · 通关上一章后开放', {
-        fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
-        fontSize: '14px',
-        color: chapter.unlocked ? '#cbd5e1' : '#94a3b8',
-      }).setOrigin(0, 0.5);
-      const tag = this.add.text(604, y, chapter.isCurrent ? '当前' : (chapter.unlocked ? '已解锁' : '未解锁'), {
-        fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
-        fontSize: '15px',
-        color: chapter.isCurrent ? '#fef3c7' : '#e2e8f0',
-      }).setOrigin(0.5);
-      const hit = this.add.rectangle(375, y, 586, 92, 0xffffff, 0)
-        .setInteractive({ useHandCursor: true });
+      const hit = this.add.zone(375, y, 606, 140).setOrigin(0.5);
+      hit.setInteractive({ useHandCursor: true });
       hit.on('pointerdown', () => {
         this.selectChapter(chapter.id);
       });
-
-      this.chapterListGroup.add([bg, title, meta, tag, hit]);
+      this.chapterList.add([card, tagNode.container, titleNode, descNode, hit]);
     });
   }
 
-  async selectChapter(chapterId, options = {}) {
-    const session = getSession();
-    const chapters = session.chapterOverview?.chapters || [];
+  async selectChapter(chapterId) {
+    const overview = getSession().chapterOverview;
+    const chapters = overview?.chapters || [];
     const chapter = chapters.find((item) => Number(item.id) === Number(chapterId));
     if (!chapter) {
       return;
     }
 
-    this.selectedChapterId = Number(chapter.id);
-    this.selectedChapter = chapter;
-    this.chapterTitle.setText(`第 ${chapter.id} 章 · ${chapter.name}`);
-    this.chapterSummary.setText(buildChapterSummary(chapter));
-    this.currentBadge.list[1].setText(chapter.isCurrent ? '当前章节' : (chapter.unlocked ? '已解锁' : '未解锁'));
-    this.chapterDetail.setText(chapter.unlocked
-      ? `${buildChapterDetail(chapter)}\n\n点击开始战斗会进入当前章节的战斗骨架页。`
-      : `第 ${chapter.id} 章尚未解锁，当前账号最高只解锁到第 ${session.chapterOverview.highestUnlockedChapterId} 章。`);
-    this.chapterWarning.setText(chapter.unlocked && Number(chapter.id) > Number(session.chapterOverview.currentChapterId)
-      ? `推荐战力：生命 ${chapter.guessHeroLife ?? '-'} / 攻击 ${chapter.guessHeroAtk ?? '-'}。当前版本不强拦截，仍允许进入挑战。`
-      : '');
-    this.startButton.bg.setFillStyle(chapter.unlocked ? 0x2563eb : 0x334155, 1);
-    const activeSession = this.homeOverview?.battleSession?.status === 'active'
-      && Number(this.homeOverview?.battleSession?.chapterId) === Number(chapter.id);
-    this.startButton.label.setText(chapter.unlocked ? (activeSession ? '继续战斗' : '开始战斗') : '尚未解锁');
-    this.renderChapterCards(chapters);
-    this.homeSummary.setText(this.buildHomeSummary());
-
-    if (options.silent || chapter.isCurrent || !chapter.unlocked) {
-      if (!chapter.unlocked) {
-        this.showFeedback('该章节尚未解锁。');
-      }
+    if (!chapter.unlocked) {
+      this.showFeedback('通关上一章后解锁');
       return;
     }
 
-    this.showFeedback('正在同步当前章节...');
-    try {
-      await selectCurrentChapter(chapter.id);
-      this.showFeedback(`当前章节已切换到第 ${chapter.id} 章。`);
-      this.renderChapterOverview();
-    } catch (error) {
-      this.showFeedback(`章节切换失败：${error.message}`);
+    this.selectedChapterId = Number(chapter.id);
+    this.renderChapters(chapters);
+    if (!chapter.isCurrent) {
+      this.showFeedback(`已切换预览到第${chapter.id}章`);
     }
+  }
+
+  async handleStartBattle() {
+    const chapter = this.selectedChapter;
+    if (!chapter?.unlocked) {
+      this.showFeedback('通关上一章后解锁');
+      return;
+    }
+
+    try {
+      if (!chapter.isCurrent) {
+        await selectCurrentChapter(chapter.id);
+        this.homeOverview = await refreshHomeOverview(getCurrentPlayer().account).catch(() => this.homeOverview);
+      }
+      this.scene.start('BattleScene');
+    } catch (error) {
+      this.showFeedback(`切换章节失败：${error.message}`);
+    }
+  }
+
+  clearCards() {
+    this.currentCard.removeAll(true);
+    this.chapterList.removeAll(true);
+  }
+
+  showState(title, description, showRetry = false) {
+    this.stateGroup.setVisible(true);
+    this.stateTitle.setText(title);
+    this.stateDesc.setText(description);
+    this.retryButton.setVisible(showRetry);
+  }
+
+  hideState() {
+    this.stateGroup.setVisible(false);
   }
 
   showFeedback(message) {
@@ -309,24 +375,5 @@ export default class HomeScene extends BaseScene {
       this.feedbackText.setText('');
       this.feedbackTimer = null;
     });
-  }
-
-  buildHomeSummary() {
-    if (!this.homeOverview) {
-      return '首页摘要待后端接口返回。';
-    }
-
-    const skillSummary = this.homeOverview.skillSummary || {};
-    const role = this.homeOverview.role || {};
-    const battleSession = this.homeOverview.battleSession;
-    const segments = [
-      `角色：${role.name || '默认角色'}`,
-      `功法已解锁：${skillSummary.unlocked ?? '-'}/${skillSummary.total ?? '-'}`,
-      `可升级：${skillSummary.upgradeable ?? '-'}`,
-    ];
-    if (battleSession?.status === 'active') {
-      segments.push(`存在进行中战斗：第 ${battleSession.chapterId} 章`);
-    }
-    return segments.join(' · ');
   }
 }
