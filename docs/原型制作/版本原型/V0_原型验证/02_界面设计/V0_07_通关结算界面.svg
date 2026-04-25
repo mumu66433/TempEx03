@@ -17,27 +17,34 @@
   <rect width="750" height="1624" fill="url(#bg)"/>
   <rect x="24" y="24" width="702" height="1576" rx="36" stroke="rgba(255,255,255,0.18)"/>
   <text x="375" y="86" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">章节通关</text>
-  <text x="375" y="126" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">结算页用于承接挑战结果与下一步行动</text>
-  
-  <rect x="66" y="220" width="618" height="1040" rx="40" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
-  <circle cx="375" cy="390" r="88" fill="#5CBF75" opacity="0.14" stroke="#5CBF75" stroke-width="3"/>
-  <text x="375" y="412" fill="#5CBF75" font-size="56" font-weight="700" text-anchor="middle">胜利</text>
-  <text x="375" y="520" fill="#1F2937" font-size="42" font-weight="700" text-anchor="middle">章节通关</text>
-  <text x="375" y="566" fill="#667085" font-size="24" text-anchor="middle">第1章 银杏村 已解锁下一章节</text>
-  <rect x="110" y="654" width="530" height="256" rx="28" fill="#F4ECE0" stroke="#D7C5AA" stroke-width="2"/>
-  <text x="142" y="716" fill="#1F2937" font-size="28" font-weight="700">通关奖励</text>
-  <text x="142" y="772" fill="#667085" font-size="24">铜钱 +120</text>
-  <text x="142" y="818" fill="#667085" font-size="24">功法经验 +18</text>
-  <text x="142" y="864" fill="#667085" font-size="24">章节进度：第2章已开放</text>
-  
+  <text x="375" y="126" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">结算页承接 V0 文字战斗结果，继续验证章节推进与自动战斗主循环</text>
+
+  <rect x="66" y="204" width="618" height="1160" rx="40" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+  <circle cx="375" cy="372" r="88" fill="#5CBF75" opacity="0.14" stroke="#5CBF75" stroke-width="3"/>
+  <text x="375" y="394" fill="#5CBF75" font-size="56" font-weight="700" text-anchor="middle">胜利</text>
+  <text x="375" y="494" fill="#1F2937" font-size="42" font-weight="700" text-anchor="middle">章节通关</text>
+  <text x="375" y="540" fill="#667085" font-size="24" text-anchor="middle">第1章 银杏村 已解锁下一章节</text>
+  <text x="375" y="578" fill="#667085" font-size="20" text-anchor="middle">V0 文字战斗验证通过：流程可从战斗页稳定回流到章节推进</text>
+
+  <rect x="110" y="642" width="530" height="246" rx="28" fill="#F4ECE0" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="142" y="700" fill="#1F2937" font-size="28" font-weight="700">本局战报摘要</text>
+  <text x="142" y="754" fill="#667085" font-size="22">[回合 06] 罗汉拳法命中山鸡，造成 24 点伤害</text>
+  <text x="142" y="800" fill="#667085" font-size="22">[波次] 第2波来袭，敌方剩余目标已清空</text>
+  <text x="142" y="846" fill="#667085" font-size="22">[BOSS] 鸡王被击败，章节挑战完成</text>
+
+  <rect x="110" y="912" width="530" height="186" rx="28" fill="#F8F2E8" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="142" y="970" fill="#1F2937" font-size="28" font-weight="700">章节推进结果</text>
+  <text x="142" y="1024" fill="#667085" font-size="24">铜钱 +120</text>
+  <text x="142" y="1068" fill="#667085" font-size="24">功法经验 +18</text>
+  <text x="142" y="1112" fill="#667085" font-size="24">章节进度：第2章已开放</text>
+
   <g filter="url(#shadow)">
-    <rect x="110" y="990" width="530" height="88" rx="22" fill="url(#goldBtn)" stroke="#B78832" stroke-width="2"/>
+    <rect x="110" y="1140" width="530" height="88" rx="22" fill="url(#goldBtn)" stroke="#B78832" stroke-width="2"/>
   </g>
-  <text x="375" y="1044" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">返回章节</text>
-  
+  <text x="375" y="1194" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">返回章节</text>
+
   <g filter="url(#shadow)">
-    <rect x="110" y="1092" width="530" height="72" rx="22" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+    <rect x="110" y="1244" width="530" height="72" rx="22" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
   </g>
-  <text x="375" y="1138" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">继续查看功法</text>
-  
+  <text x="375" y="1290" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">继续查看功法</text>
 </svg>

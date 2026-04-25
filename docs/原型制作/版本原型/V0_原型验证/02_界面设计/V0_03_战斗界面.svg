@@ -10,6 +10,10 @@
       <stop stop-color="#FFE4A0"/>
       <stop offset="1" stop-color="#F4C56A"/>
     </linearGradient>
+    <linearGradient id="stageGlow" x1="40" y1="332" x2="710" y2="1172" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.05"/>
+    </linearGradient>
     <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
       <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#09111D" flood-opacity="0.24"/>
     </filter>
@@ -17,30 +21,64 @@
   <rect width="750" height="1624" fill="url(#bg)"/>
   <rect x="24" y="24" width="702" height="1576" rx="36" stroke="rgba(255,255,255,0.18)"/>
   <text x="375" y="86" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">战斗界面</text>
-  <text x="375" y="126" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">中心区域留给战斗表现，信息集中在顶部和底部</text>
-  
-  <rect x="32" y="146" width="686" height="148" rx="30" fill="rgba(255,248,238,0.94)" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="375" y="126" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">V0 临时文字战斗方案，保留顶部 HUD / 中心主表现区 / 底部构筑条</text>
+
+  <rect x="32" y="146" width="686" height="154" rx="30" fill="rgba(255,248,238,0.94)" stroke="#D7C5AA" stroke-width="2"/>
   <text x="70" y="204" fill="#1F2937" font-size="26" font-weight="700">第1章 银杏村</text>
   <text x="70" y="242" fill="#667085" font-size="22">第2层 第1波 / 共2波</text>
-  <rect x="70" y="260" width="258" height="14" rx="7" fill="#E4DACC"/><rect x="70" y="260" width="182" height="14" rx="7" fill="#5CBF75"/>
-  <text x="372" y="204" fill="#1F2937" font-size="26" font-weight="700">敌方</text>
-  <rect x="420" y="260" width="258" height="14" rx="7" fill="#E4DACC"/><rect x="420" y="260" width="212" height="14" rx="7" fill="#D96B6B"/>
-  <text x="70" y="1160" fill="#FFFFFF" font-size="28" font-weight="700">自动战斗中</text>
-  <rect x="56" y="360" width="210" height="460" rx="30" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)"/>
-  <text x="160" y="610" fill="#FFFFFF" font-size="42" font-weight="700" text-anchor="middle">我方角色</text>
-  <rect x="484" y="290" width="182" height="182" rx="28" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.18)"/>
-  <text x="575" y="394" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">鸡</text>
-  <rect x="430" y="560" width="236" height="236" rx="30" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)"/>
-  <text x="548" y="688" fill="#FFFFFF" font-size="36" font-weight="700" text-anchor="middle">下波预留</text>
+  <rect x="70" y="256" width="110" height="34" rx="16" fill="#FFE7A8"/>
+  <text x="125" y="279" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">普通波</text>
+  <rect x="196" y="256" width="126" height="34" rx="16" fill="#E8F2FF"/>
+  <text x="259" y="279" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">自动战斗</text>
+  <text x="372" y="204" fill="#1F2937" font-size="26" font-weight="700">双方状态卡</text>
+  <text x="420" y="242" fill="#667085" font-size="20">我方生命</text>
+  <rect x="420" y="256" width="258" height="14" rx="7" fill="#E4DACC"/>
+  <rect x="420" y="256" width="188" height="14" rx="7" fill="#5CBF75"/>
+  <text x="420" y="290" fill="#667085" font-size="20">敌方生命</text>
+  <rect x="420" y="304" width="258" height="14" rx="7" fill="#E4DACC"/>
+  <rect x="420" y="304" width="204" height="14" rx="7" fill="#D96B6B"/>
+
+  <rect x="40" y="332" width="670" height="840" rx="34" fill="url(#stageGlow)" stroke="rgba(255,255,255,0.20)" stroke-width="2"/>
+  <text x="78" y="388" fill="#FFFFFF" font-size="30" font-weight="700">文字战报主表现区</text>
+  <text x="78" y="424" fill="rgba(255,255,255,0.72)" font-size="20">主舞台承载最新战报、回合日志、波次切换和战斗摘要</text>
+  <rect x="530" y="362" width="136" height="36" rx="18" fill="rgba(255,231,168,0.96)"/>
+  <text x="598" y="385" fill="#1F2937" font-size="18" font-weight="700" text-anchor="middle">V0 临时实现</text>
+
+  <rect x="72" y="450" width="606" height="152" rx="28" fill="rgba(255,248,238,0.96)" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="104" y="496" fill="#667085" font-size="18" font-weight="700">最新战报</text>
+  <text x="104" y="546" fill="#1F2937" font-size="32" font-weight="700">罗汉拳法命中山鸡，造成 24 点伤害</text>
+  <text x="104" y="584" fill="#667085" font-size="20">当前节奏：回合 06 · 本波剩余敌人 1 / 3 · 下一关键事件为“第2波来袭”</text>
+
+  <rect x="72" y="626" width="606" height="312" rx="28" fill="rgba(10,18,32,0.68)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+  <text x="104" y="674" fill="#FFFFFF" font-size="24" font-weight="700">回合日志</text>
+  <text x="104" y="714" fill="rgba(255,255,255,0.70)" font-size="18">默认自动滚动到最新内容，保留最近 5-7 条可视记录</text>
+  <text x="104" y="764" fill="#D7E7F7" font-size="22">[回合 03] 轻身术触发，闪避提升</text>
+  <text x="104" y="810" fill="#D7E7F7" font-size="22">[回合 04] 山鸡突进，我方承受 11 点伤害</text>
+  <text x="104" y="856" fill="#FFE7A8" font-size="22" font-weight="700">[回合 05] 金钟罩生效，本次伤害降低 30%</text>
+  <text x="104" y="902" fill="#FFFFFF" font-size="22" font-weight="700">[回合 06] 罗汉拳法命中山鸡，造成 24 点伤害</text>
+
+  <rect x="72" y="966" width="606" height="94" rx="24" fill="rgba(255,231,168,0.92)" stroke="#F4C56A" stroke-width="2"/>
+  <text x="375" y="1006" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">波次切换横幅</text>
+  <text x="375" y="1040" fill="#1F2937" font-size="30" font-weight="700" text-anchor="middle">第1波完成 · 第2波来袭</text>
+
+  <rect x="72" y="1078" width="606" height="76" rx="24" fill="rgba(255,248,238,0.96)" stroke="#D7C5AA" stroke-width="2"/>
+  <text x="104" y="1124" fill="#1F2937" font-size="21" font-weight="700">战斗摘要</text>
+  <text x="248" y="1124" fill="#667085" font-size="20">累计击败 3</text>
+  <text x="396" y="1124" fill="#667085" font-size="20">累计受击 2</text>
+  <text x="560" y="1124" fill="#667085" font-size="20" text-anchor="middle">主功法 罗汉拳法 1星</text>
+
   <rect x="32" y="1220" width="686" height="200" rx="34" fill="rgba(255,248,238,0.94)" stroke="#D7C5AA" stroke-width="2"/>
-  <text x="72" y="1280" fill="#1F2937" font-size="28" font-weight="700">本局构筑</text>
-  <rect x="72" y="1310" width="116" height="72" rx="18" fill="#FFE7A8"/><text x="130" y="1356" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">罗汉拳法 1星</text>
-  <rect x="206" y="1310" width="116" height="72" rx="18" fill="#E8F2FF"/><text x="264" y="1356" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">轻身术 1星</text>
-  <rect x="340" y="1310" width="116" height="72" rx="18" fill="#F3E8FF"/><text x="398" y="1356" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">金钟罩 2星</text>
-  
+  <text x="72" y="1280" fill="#1F2937" font-size="28" font-weight="700">本局构筑条</text>
+  <text x="72" y="1314" fill="#667085" font-size="20">固定底部锚点，功法超出单屏后横向滚动</text>
+  <rect x="72" y="1334" width="116" height="72" rx="18" fill="#FFE7A8"/>
+  <text x="130" y="1380" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">罗汉拳法 1星</text>
+  <rect x="206" y="1334" width="116" height="72" rx="18" fill="#E8F2FF"/>
+  <text x="264" y="1380" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">轻身术 1星</text>
+  <rect x="340" y="1334" width="116" height="72" rx="18" fill="#F3E8FF"/>
+  <text x="398" y="1380" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">金钟罩 2星</text>
+
   <g filter="url(#shadow)">
-    <rect x="540" y="1306" width="138" height="74" rx="22" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
+    <rect x="540" y="1330" width="138" height="74" rx="22" fill="#FFF8EE" stroke="#D7C5AA" stroke-width="2"/>
   </g>
-  <text x="609" y="1353" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">暂停</text>
-  
+  <text x="609" y="1377" fill="#1F2937" font-size="28" font-weight="700" text-anchor="middle">暂停</text>
 </svg>

@@ -11,7 +11,7 @@
   </defs>
   <rect width="750" height="1624" fill="url(#bg)"/>
   <text x="375" y="82" fill="#FFFFFF" font-size="34" font-weight="700" text-anchor="middle">战斗状态稿</text>
-  <text x="375" y="124" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">普通波 / 精英波 / BOSS层 / 受击 / 死亡 / 波次切换 / 暂停</text>
+  <text x="375" y="124" fill="rgba(255,255,255,0.72)" font-size="20" text-anchor="middle">文字战斗模式下的普通波 / 精英波 / BOSS层 / 受击 / 死亡 / 波次切换 / 暂停</text>
 
   <rect x="42" y="166" width="666" height="154" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2" filter="url(#shadow)"/>
   <text x="70" y="214" fill="#1F2937" font-size="28" font-weight="700">顶部 HUD</text>
@@ -25,54 +25,51 @@
 
   <rect x="42" y="348" width="318" height="190" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
   <text x="72" y="396" fill="#1F2937" font-size="26" font-weight="700">普通波</text>
-  <text x="72" y="432" fill="#475467" font-size="20">常规敌人，自动战斗中</text>
-  <circle cx="132" cy="486" r="34" fill="#F4C56A"/>
-  <text x="132" y="498" fill="#1F2937" font-size="26" font-weight="700" text-anchor="middle">我</text>
-  <circle cx="278" cy="486" r="30" fill="#D96B6B"/>
-  <text x="278" y="497" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">鸡</text>
+  <text x="72" y="432" fill="#475467" font-size="20">中心区展示最新战报 + 日志滚动</text>
+  <rect x="72" y="454" width="258" height="62" rx="18" fill="#0F1B2B"/>
+  <text x="92" y="492" fill="#FFFFFF" font-size="20" font-weight="700">罗汉拳法命中山鸡，造成 24 点伤害</text>
+  <text x="92" y="522" fill="#D7E7F7" font-size="18">[回合 06] 敌方剩余 1 / 3</text>
 
   <rect x="390" y="348" width="318" height="190" rx="24" fill="#FFF9F0" stroke="#D96B6B" stroke-width="3"/>
   <text x="420" y="396" fill="#1F2937" font-size="26" font-weight="700">精英波</text>
-  <text x="420" y="432" fill="#475467" font-size="20">红色角标，敌人压迫增强</text>
-  <rect x="420" y="462" width="84" height="36" rx="14" fill="#D96B6B"/>
-  <text x="462" y="486" fill="#FFFFFF" font-size="18" font-weight="700" text-anchor="middle">精英</text>
-  <circle cx="622" cy="486" r="36" fill="#D96B6B"/>
-  <text x="622" y="498" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">精英</text>
+  <text x="420" y="432" fill="#475467" font-size="20">红色高亮强调精英来袭记录</text>
+  <rect x="420" y="454" width="258" height="62" rx="18" fill="#3A1820"/>
+  <text x="440" y="492" fill="#FFFFFF" font-size="20" font-weight="700">精英山鸡突进，造成 18 点伤害</text>
+  <text x="440" y="522" fill="#FFD3D3" font-size="18">[精英] 下一次攻击前摇缩短</text>
 
   <rect x="42" y="566" width="666" height="202" rx="24" fill="#FFF9F0" stroke="#D99A3D" stroke-width="3"/>
   <text x="72" y="614" fill="#1F2937" font-size="28" font-weight="700">BOSS 层</text>
-  <text x="72" y="652" fill="#475467" font-size="21">第5层固定 BOSS，胜利后进入章节结算，不再弹三选一</text>
-  <rect x="72" y="684" width="506" height="24" rx="12" fill="#E8E1D5"/>
-  <rect x="72" y="684" width="410" height="24" rx="12" fill="#D96B6B"/>
-  <text x="604" y="707" fill="#D96B6B" font-size="24" font-weight="700">鸡王</text>
-  <circle cx="600" cy="620" r="54" fill="#D99A3D"/>
-  <text x="600" y="636" fill="#FFFFFF" font-size="28" font-weight="700" text-anchor="middle">BOSS</text>
+  <text x="72" y="652" fill="#475467" font-size="21">顶部状态卡拉长，中心区先显示 BOSS 来袭横幅，再切回战报主舞台</text>
+  <rect x="72" y="678" width="506" height="24" rx="12" fill="#E8E1D5"/>
+  <rect x="72" y="678" width="410" height="24" rx="12" fill="#D96B6B"/>
+  <rect x="72" y="720" width="594" height="28" rx="14" fill="#13233C"/>
+  <text x="369" y="740" fill="#FFE7A8" font-size="20" font-weight="700" text-anchor="middle">第5层 BOSS · 鸡王出现</text>
 
   <rect x="42" y="796" width="318" height="196" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
   <text x="72" y="844" fill="#1F2937" font-size="26" font-weight="700">受击反馈</text>
-  <text x="72" y="880" fill="#475467" font-size="20">闪白 / 飘字 / 血条过渡</text>
-  <circle cx="154" cy="936" r="38" fill="#F4C56A"/>
-  <path d="M194 900 L230 872 L218 918 L250 910 L208 964 L220 926 Z" fill="#D96B6B"/>
-  <text x="260" y="944" fill="#D96B6B" font-size="26" font-weight="700">-24</text>
+  <text x="72" y="880" fill="#475467" font-size="20">日志高亮 + 顶部血条过渡</text>
+  <rect x="72" y="906" width="258" height="54" rx="18" fill="#FCE4E4"/>
+  <text x="92" y="940" fill="#D96B6B" font-size="20" font-weight="700">[受击] 我方承受 11 点伤害</text>
+  <text x="92" y="970" fill="#475467" font-size="18">血条需保留 120ms-180ms 过渡</text>
 
   <rect x="390" y="796" width="318" height="196" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
   <text x="420" y="844" fill="#1F2937" font-size="26" font-weight="700">死亡判定</text>
-  <text x="420" y="880" fill="#475467" font-size="20">我方死亡进失败，敌方全灭进下一波</text>
-  <circle cx="494" cy="936" r="38" fill="#98A2B3" opacity="0.45"/>
-  <text x="494" y="946" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">倒下</text>
-  <text x="586" y="944" fill="#D96B6B" font-size="24" font-weight="700">失败结算</text>
+  <text x="420" y="880" fill="#475467" font-size="20">战报决定回流到失败或下一波</text>
+  <rect x="420" y="906" width="258" height="54" rx="18" fill="#EEF1F5"/>
+  <text x="440" y="940" fill="#475467" font-size="20" font-weight="700">[结论] 我方倒下，进入失败结算</text>
+  <text x="440" y="970" fill="#475467" font-size="18">敌方全灭时则跳到下一波 / 层结算</text>
 
   <rect x="42" y="1020" width="318" height="200" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
   <text x="72" y="1068" fill="#1F2937" font-size="26" font-weight="700">波次切换</text>
-  <text x="72" y="1104" fill="#475467" font-size="20">停留 600ms-900ms</text>
+  <text x="72" y="1104" fill="#475467" font-size="20">横幅固定在中心主表现区中段</text>
   <rect x="82" y="1144" width="238" height="52" rx="20" fill="#13233C"/>
-  <text x="201" y="1178" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">下一波来袭</text>
+  <text x="201" y="1178" fill="#FFFFFF" font-size="22" font-weight="700" text-anchor="middle">第2波来袭</text>
 
   <rect x="390" y="1020" width="318" height="200" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
   <text x="420" y="1068" fill="#1F2937" font-size="26" font-weight="700">暂停面板</text>
-  <text x="420" y="1104" fill="#475467" font-size="20">遮罩 + 继续 / 返回章节</text>
-  <rect x="436" y="1136" width="222" height="48" rx="18" fill="#F4C56A"/>
-  <text x="547" y="1167" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">继续战斗</text>
+  <text x="420" y="1104" fill="#475467" font-size="20">遮罩覆盖三段式战斗页，底部锚点仍可感知</text>
+  <rect x="430" y="1132" width="238" height="58" rx="18" fill="#F4C56A"/>
+  <text x="549" y="1168" fill="#1F2937" font-size="20" font-weight="700" text-anchor="middle">继续战斗 / 返回章节</text>
 
   <rect x="42" y="1248" width="666" height="208" rx="24" fill="#FFF9F0" stroke="#D8CBB3" stroke-width="2"/>
   <text x="72" y="1296" fill="#1F2937" font-size="28" font-weight="700">调试浮层</text>
