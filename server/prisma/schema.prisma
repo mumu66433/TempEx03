@@ -16,6 +16,8 @@ model Player {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   progress     PlayerProgress?
+  skillProgress PlayerSkillProgress[]
+  battleSession PlayerBattleSession?
 }
 
 model PlayerProgress {
@@ -26,4 +28,40 @@ model PlayerProgress {
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
   player                   Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+}
+
+model PlayerSkillProgress {
+  id        String   @id @default(cuid())
+  playerId   String
+  skillId    Int
+  level      Int      @default(0)
+  exp        Int      @default(0)
+  stars      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  player     Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, skillId])
+}
+
+model PlayerBattleSession {
+  id          String   @id @default(cuid())
+  playerId    String   @unique
+  chapterId   Int
+  layerIndex  Int      @default(1)
+  waveIndex   Int      @default(1)
+  missionId   Int?
+  waveType    String
+  enemyId     Int?
+  enemyName   String?
+  enemyCount  Int      @default(0)
+  enemyLife   Int      @default(0)
+  enemyAtk    Int      @default(0)
+  status      String   @default("active")
+  result      String?
+  startedAt   DateTime @default(now())
+  settledAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  player      Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
 }

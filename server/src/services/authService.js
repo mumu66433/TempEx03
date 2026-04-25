@@ -216,6 +216,7 @@ module.exports = {
   DEFAULT_CHAPTER_ID,
   DEFAULT_PASSWORD,
   buildPlayerProfile,
+  ensurePlayerProgress,
   generateAccount,
   getPlayerProfileByAccount,
   hashPassword,
