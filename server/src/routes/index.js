@@ -2,6 +2,7 @@ const express = require('express');
 const { createAuthRoutes } = require('./authRoutes');
 const { createConfigRoutes } = require('./configRoutes');
 const { createHealthRoutes } = require('./healthRoutes');
+const { createPlayerRoutes } = require('./playerRoutes');
 
 function createApiRouter() {
   const router = express.Router();
@@ -9,6 +10,7 @@ function createApiRouter() {
   router.use(createAuthRoutes());
   router.use(createConfigRoutes());
   router.use(createHealthRoutes());
+  router.use(createPlayerRoutes());
 
   return router;
 }

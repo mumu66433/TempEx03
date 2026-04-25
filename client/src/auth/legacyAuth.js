@@ -365,7 +365,7 @@ function wireLoginForm(ui, onAuthenticated) {
       upsertHistory({ account, password }, result.player);
       renderHistory(ui, result.player.account);
       setStatus(ui, `已登录：${result.player.nickname || result.player.account}`, 'success');
-      onAuthenticated(result.player);
+      onAuthenticated(result.profile || result.player);
     } catch (error) {
       setStatus(ui, error.message, 'error');
     }
@@ -416,7 +416,7 @@ function wireRegisterForm(ui, onAuthenticated) {
 
       upsertHistory(credentials, loginResult.player);
       renderHistory(ui, loginResult.player.account);
-      onAuthenticated(loginResult.player);
+      onAuthenticated(loginResult.profile || loginResult.player);
     } catch (error) {
       setStatus(ui, error.message, 'error');
     }

@@ -15,4 +15,15 @@ model Player {
   lastLoginAt  DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  progress     PlayerProgress?
+}
+
+model PlayerProgress {
+  id                       String   @id @default(cuid())
+  playerId                 String   @unique
+  currentChapterId         Int      @default(1)
+  highestUnlockedChapterId Int      @default(1)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  player                   Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
 }

@@ -3,14 +3,15 @@ const { getPrismaClient } = require('../config/prisma');
 
 const DEFAULT_PASSWORD = '123456';
 const ACCOUNT_PREFIX = 'P';
+const DEFAULT_CHAPTER_ID = 1;
 
 function hashPassword(password) {
   return crypto.createHash('sha256').update(String(password)).digest('hex');
 }
 
-function normalizeNickname(nickname) {
+function normalizeNickname(nickname, fallback = '新用户') {
   const value = String(nickname || '').trim();
-  return value || '新用户';
+  return value || fallback;
 }
 
 function generateAccount() {
@@ -31,6 +32,7 @@ async function generateUniqueAccount(prisma) {
       where: { account },
       select: { id: true },
     });
+
     if (!exists) {
       return account;
     }
@@ -54,35 +56,88 @@ function sanitizePlayer(player) {
   };
 }
 
-async function registerPlayer({ account, password }) {
-  const prisma = getPrismaClient();
-  const normalizedAccount = normalizeAccount(account) || (await generateUniqueAccount(prisma));
-  const normalizedPassword = String(password || DEFAULT_PASSWORD);
-
-  if (!normalizedAccount) {
-    throw new Error('账号不能为空');
+function sanitizeProgress(progress) {
+  if (!progress) {
+    return null;
   }
-
-  const exists = await prisma.player.findUnique({
-    where: { account: normalizedAccount },
-    select: { id: true },
-  });
-  if (exists) {
-    throw new Error('账号已存在');
-  }
-
-  const player = await prisma.player.create({
-    data: {
-      account: normalizedAccount,
-      nickname: normalizeNickname(normalizedAccount),
-      passwordHash: hashPassword(normalizedPassword),
-    },
-  });
 
   return {
-    player: sanitizePlayer(player),
-    defaultPassword: normalizedPassword,
+    currentChapterId: progress.currentChapterId,
+    highestUnlockedChapterId: progress.highestUnlockedChapterId,
+    createdAt: progress.createdAt,
+    updatedAt: progress.updatedAt,
   };
+}
+
+function buildPlayerProfile(player, progress) {
+  const safePlayer = sanitizePlayer(player);
+  const safeProgress = sanitizeProgress(progress);
+
+  if (!safePlayer) {
+    return null;
+  }
+
+  return {
+    ...safePlayer,
+    currentChapterId: safeProgress?.currentChapterId ?? DEFAULT_CHAPTER_ID,
+    highestUnlockedChapterId: safeProgress?.highestUnlockedChapterId ?? DEFAULT_CHAPTER_ID,
+  };
+}
+
+async function ensurePlayerProgress(prisma, playerId) {
+  return prisma.playerProgress.upsert({
+    where: { playerId },
+    update: {},
+    create: {
+      playerId,
+      currentChapterId: DEFAULT_CHAPTER_ID,
+      highestUnlockedChapterId: DEFAULT_CHAPTER_ID,
+    },
+  });
+}
+
+async function registerPlayer({ account, password, nickname }) {
+  const prisma = getPrismaClient();
+  const normalizedPassword = String(password || DEFAULT_PASSWORD);
+
+  return prisma.$transaction(async (tx) => {
+    const normalizedAccount = normalizeAccount(account) || (await generateUniqueAccount(tx));
+
+    if (!normalizedAccount) {
+      throw new Error('账号不能为空');
+    }
+
+    const exists = await tx.player.findUnique({
+      where: { account: normalizedAccount },
+      select: { id: true },
+    });
+    if (exists) {
+      throw new Error('账号已存在');
+    }
+
+    const player = await tx.player.create({
+      data: {
+        account: normalizedAccount,
+        nickname: normalizeNickname(nickname, normalizedAccount),
+        passwordHash: hashPassword(normalizedPassword),
+      },
+    });
+
+    const progress = await tx.playerProgress.create({
+      data: {
+        playerId: player.id,
+        currentChapterId: DEFAULT_CHAPTER_ID,
+        highestUnlockedChapterId: DEFAULT_CHAPTER_ID,
+      },
+    });
+
+    return {
+      player: sanitizePlayer(player),
+      progress: sanitizeProgress(progress),
+      profile: buildPlayerProfile(player, progress),
+      defaultPassword: normalizedPassword,
+    };
+  });
 }
 
 async function loginPlayer({ account, password }) {
@@ -96,6 +151,9 @@ async function loginPlayer({ account, password }) {
 
   const player = await prisma.player.findUnique({
     where: { account: normalizedAccount },
+    include: {
+      progress: true,
+    },
   });
 
   if (!player) {
@@ -111,18 +169,59 @@ async function loginPlayer({ account, password }) {
     data: {
       lastLoginAt: new Date(),
     },
+    include: {
+      progress: true,
+    },
   });
+
+  const progress = updatedPlayer.progress || (await ensurePlayerProgress(prisma, updatedPlayer.id));
 
   return {
     player: sanitizePlayer(updatedPlayer),
+    progress: sanitizeProgress(progress),
+    profile: buildPlayerProfile(updatedPlayer, progress),
+  };
+}
+
+async function getPlayerProfileByAccount({ account }) {
+  const prisma = getPrismaClient();
+  const normalizedAccount = normalizeAccount(account);
+
+  if (!normalizedAccount) {
+    throw new Error('账号不能为空');
+  }
+
+  const player = await prisma.player.findUnique({
+    where: { account: normalizedAccount },
+    include: {
+      progress: true,
+    },
+  });
+
+  if (!player) {
+    throw new Error('账号不存在');
+  }
+
+  const progress = player.progress || (await ensurePlayerProgress(prisma, player.id));
+
+  return {
+    player: sanitizePlayer(player),
+    progress: sanitizeProgress(progress),
+    profile: buildPlayerProfile(player, progress),
   };
 }
 
 module.exports = {
+  ACCOUNT_PREFIX,
+  DEFAULT_CHAPTER_ID,
   DEFAULT_PASSWORD,
-  hashPassword,
+  buildPlayerProfile,
   generateAccount,
-  registerPlayer,
+  getPlayerProfileByAccount,
+  hashPassword,
   loginPlayer,
+  normalizeAccount,
+  registerPlayer,
   sanitizePlayer,
+  sanitizeProgress,
 };
