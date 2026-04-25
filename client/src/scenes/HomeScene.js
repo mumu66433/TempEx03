@@ -10,6 +10,33 @@ import {
 } from '../utils/ui.js';
 import { getCurrentPlayer, getSession, refreshPlayerSession, selectCurrentChapter } from '../data/session.js';
 
+function buildChapterSummary(chapter) {
+  if (!chapter) {
+    return '请稍候，正在向后端同步章节和玩家进度。';
+  }
+
+  const detailParts = [
+    `关卡组 ${chapter.missionId || '-'}`,
+    `关卡数 ${chapter.missionCount || '-'}`,
+    `预计波次 ${chapter.totalWaveEstimate || '-'}`,
+  ];
+  return detailParts.join(' · ');
+}
+
+function buildChapterDetail(chapter) {
+  if (!chapter) {
+    return '等待章节数据返回';
+  }
+
+  const lines = [
+    `章节名：${chapter.name || '未命名章节'}`,
+    `推荐生命：${chapter.guessHeroLife ?? '-'}`,
+    `推荐攻击：${chapter.guessHeroAtk ?? '-'}`,
+    `普通波规则：${chapter.normalWaveRule || '-'}`,
+  ];
+  return lines.join('\n');
+}
+
 export default class HomeScene extends BaseScene {
   constructor() {
     super('HomeScene');
@@ -142,10 +169,11 @@ export default class HomeScene extends BaseScene {
       this.sectionState.setText(`加载失败：${error.message}`);
       this.retryButton.container.setVisible(true);
       this.chapterTitle.setText('章节读取失败');
-      this.chapterSummary.setText('请确认后端已启动，或者点击下方按钮重试。');
+      this.chapterSummary.setText('请确认后端已启动、账号已存在，或者点击下方按钮重试。');
       this.currentBadge.list[1].setText('失败');
-      this.chapterDetail.setText('当前无法读取章节列表。');
-      this.chapterWarning.setText('章节页仍保留底部导航，便于继续查看其他已开放页。');
+      this.chapterDetail.setText('当前无法读取章节列表。\n如果后端离线，这属于接口失败；如果后端在线但无章节配置，这会在下一步显示为空数据。');
+      const backend = getSession().backend;
+      this.chapterWarning.setText(backend.ready ? '后端在线，但当前请求未成功，请检查账号或接口返回。' : `后端不可用：${backend.message}`);
     }
   }
 
@@ -228,13 +256,13 @@ export default class HomeScene extends BaseScene {
     this.selectedChapterId = Number(chapter.id);
     this.selectedChapter = chapter;
     this.chapterTitle.setText(`第 ${chapter.id} 章 · ${chapter.name}`);
-    this.chapterSummary.setText(chapter.description || '章节描述待后端配置继续补充，当前先以章节资料接口驱动页面。');
+    this.chapterSummary.setText(buildChapterSummary(chapter));
     this.currentBadge.list[1].setText(chapter.isCurrent ? '当前章节' : (chapter.unlocked ? '已解锁' : '未解锁'));
     this.chapterDetail.setText(chapter.unlocked
-      ? `当前可查看并准备挑战第 ${chapter.id} 章。点击开始战斗会进入本轮 V0 战斗骨架页。`
+      ? `${buildChapterDetail(chapter)}\n\n点击开始战斗会进入当前章节的战斗骨架页。`
       : `第 ${chapter.id} 章尚未解锁，当前账号最高只解锁到第 ${session.chapterOverview.highestUnlockedChapterId} 章。`);
     this.chapterWarning.setText(chapter.unlocked && Number(chapter.id) > Number(session.chapterOverview.currentChapterId)
-      ? '推荐战力不足时当前版本不强拦截，仍允许进入挑战。'
+      ? `推荐战力：生命 ${chapter.guessHeroLife ?? '-'} / 攻击 ${chapter.guessHeroAtk ?? '-'}。当前版本不强拦截，仍允许进入挑战。`
       : '');
     this.startButton.bg.setFillStyle(chapter.unlocked ? 0x2563eb : 0x334155, 1);
     this.startButton.label.setText(chapter.unlocked ? '开始战斗' : '尚未解锁');

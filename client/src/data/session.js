@@ -1,4 +1,4 @@
-import { fetchChapterConfig, fetchPlayerChapters, fetchPlayerProfile, updatePlayerCurrentChapter } from './api.js';
+import { fetchChapterConfig, fetchHealth, fetchPlayerChapters, fetchPlayerProfile, updatePlayerCurrentChapter } from './api.js';
 import { DEFAULT_PLAYER } from './gameData.js';
 import { getSavedPlayer, savePlayer } from '../utils/storage.js';
 
@@ -6,6 +6,11 @@ const session = {
   chapters: [],
   chapterOverview: null,
   profile: null,
+  backend: {
+    ready: false,
+    lastCheckedAt: '',
+    message: '尚未检查后端状态',
+  },
 };
 
 function normalizePositiveInteger(value, fallback) {
@@ -43,6 +48,36 @@ function mergeChapterMeta(chapters, overview) {
   });
 }
 
+function updateBackendStatus(nextState) {
+  session.backend = {
+    ...session.backend,
+    ...nextState,
+    lastCheckedAt: new Date().toISOString(),
+  };
+}
+
+export async function refreshBackendStatus() {
+  try {
+    const payload = await fetchHealth();
+    updateBackendStatus({
+      ready: true,
+      message: payload?.time ? `后端在线：${payload.time}` : '后端在线',
+    });
+  } catch (error) {
+    updateBackendStatus({
+      ready: false,
+      message: error.message || '后端不可用',
+    });
+  }
+
+  return session.backend;
+}
+
+export async function refreshChapterConfigs() {
+  session.chapters = await fetchChapterConfig();
+  return session.chapters;
+}
+
 export function getSession() {
   return session;
 }
@@ -52,8 +87,10 @@ export function getCurrentPlayer() {
 }
 
 export async function bootstrapSession() {
+  await refreshBackendStatus();
+
   try {
-    session.chapters = await fetchChapterConfig();
+    await refreshChapterConfigs();
   } catch {
     session.chapters = [];
   }
@@ -65,7 +102,13 @@ export async function bootstrapSession() {
     return session;
   }
 
-  await refreshPlayerSession(savedPlayer.account);
+  try {
+    await refreshPlayerSession(savedPlayer.account);
+  } catch {
+    session.profile = savedPlayer;
+    session.chapterOverview = null;
+  }
+
   return session;
 }
 
@@ -73,6 +116,9 @@ export async function refreshPlayerSession(account = getCurrentPlayer().account)
   if (!account) {
     throw new Error('账号不能为空');
   }
+
+  await refreshBackendStatus();
+  await refreshChapterConfigs();
 
   const [profilePayload, chapterPayload] = await Promise.all([
     fetchPlayerProfile(account),
@@ -99,6 +145,7 @@ export async function selectCurrentChapter(chapterId) {
     throw new Error('账号不能为空');
   }
 
+  await refreshBackendStatus();
   const payload = await updatePlayerCurrentChapter(account, chapterId);
   session.profile = buildPlayerProfile(payload.profile || payload.player || {});
   savePlayer(session.profile);

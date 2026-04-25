@@ -17,6 +17,10 @@ async function requestJson(path, options = {}) {
   return payload;
 }
 
+export async function fetchHealth() {
+  return requestJson('/health');
+}
+
 export async function fetchChapterConfig() {
   const payload = await requestJson('/config/chapter');
   return Array.isArray(payload.chapters) ? payload.chapters : [];

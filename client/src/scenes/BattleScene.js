@@ -16,16 +16,16 @@ export default class BattleScene extends BaseScene {
       || session.chapters?.find((item) => Number(item.id) === chapterId)
       || null;
 
-    this.addTopBar('战斗页骨架', 'V0 当前先联通章节主流程，战斗系统待下一轮接入');
+    this.addTopBar('战斗页占位', '当前仅展示真实章节数据，战斗接口尚未就绪');
     drawRoundedPanel(this, 375, 310, 646, 176, 0x0b1220, 0.88, 0xffffff, 0.06, 28);
-    createPill(this, 144, 260, 118, 38, '第 1 层 / 1 波', 0x111827, '#e2e8f0');
-    createPill(this, 284, 260, 140, 38, '自动战斗预留', 0x1d4ed8, '#dbeafe');
-    makeThemeText(this, 375, 324, `${chapter?.name || '当前章节'} 准备中`, {
+    createPill(this, 158, 260, 136, 38, '战斗接口未就绪', 0x7f1d1d, '#fecaca');
+    createPill(this, 326, 260, 140, 38, session.backend.ready ? '后端在线' : '后端异常', session.backend.ready ? 0x14532d : 0x7f1d1d, session.backend.ready ? '#bbf7d0' : '#fecaca');
+    makeThemeText(this, 375, 324, `${chapter?.name || '当前章节'} 已就绪`, {
       fontSize: '34px',
       color: '#f8fafc',
       fontStyle: 'bold',
     });
-    makeLabel(this, 375, 374, '这里会承接波次、敌人、三选一和结算。当前版本先验证前端章节与资料链路。', {
+    makeLabel(this, 375, 374, '当前页面只消费后端返回的章节数据，不再用前端伪造波次、敌人或结算结果。', {
       fontSize: '18px',
       color: '#cbd5e1',
       wordWrap: { width: 560 },
@@ -38,7 +38,7 @@ export default class BattleScene extends BaseScene {
       color: '#f8fafc',
       fontStyle: 'bold',
     });
-    makeLabel(this, 375, 676, '后续会在这里接入 Phaser 战斗、敌人入场、暂停和结算。', {
+    makeLabel(this, 375, 676, '后续会在这里接入 Phaser 战斗、敌人入场、暂停和结算。当前先确认章节入口与接口态。', {
       fontSize: '18px',
       color: '#94a3b8',
     });
@@ -46,7 +46,13 @@ export default class BattleScene extends BaseScene {
       fontSize: '22px',
       color: '#f8fafc',
     });
-    makeLabel(this, 375, 892, chapter?.description || '章节描述待后端配置继续补充。', {
+    makeLabel(this, 375, 924, `关卡组：${chapter?.missionId ?? '-'} · 关卡数：${chapter?.missionCount ?? '-'} · 预计波次：${chapter?.totalWaveEstimate ?? '-'}`, {
+      fontSize: '17px',
+      color: '#cbd5e1',
+      wordWrap: { width: 520 },
+      align: 'center',
+    });
+    makeLabel(this, 375, 978, `推荐生命：${chapter?.guessHeroLife ?? '-'} · 推荐攻击：${chapter?.guessHeroAtk ?? '-'}`, {
       fontSize: '17px',
       color: '#cbd5e1',
       wordWrap: { width: 520 },
@@ -56,7 +62,7 @@ export default class BattleScene extends BaseScene {
       fontSize: '18px',
       color: '#7dd3fc',
     });
-    makeLabel(this, 375, 1148, '1. 已打通登录后进入章节主流程\n2. 已支持章节切换并落到服务端\n3. 战斗、结算、功法三选一接口待继续接入', {
+    makeLabel(this, 375, 1148, '1. 当前章节来自后端接口\n2. 当前章节切换已落到服务端\n3. 战斗、结算、功法三选一仍等待后端继续补接口', {
       fontSize: '18px',
       color: '#e2e8f0',
       align: 'left',
