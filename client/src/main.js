@@ -8,6 +8,7 @@ import LoginScene from './scenes/LoginScene.js';
 import HomeScene from './scenes/HomeScene.js';
 import SkillScene from './scenes/SkillScene.js';
 import BattleScene from './scenes/BattleScene.js';
+import ResultScene from './scenes/ResultScene.js';
 
 function applyAppScale(appFrame) {
   const viewportWidth = window.innerWidth;
@@ -46,7 +47,7 @@ function createGame(parent) {
       height: GAME_HEIGHT,
       mode: Phaser.Scale.NONE,
     },
-    scene: [BootScene, LoginScene, HomeScene, SkillScene, BattleScene],
+    scene: [BootScene, LoginScene, HomeScene, SkillScene, BattleScene, ResultScene],
   });
 }
 

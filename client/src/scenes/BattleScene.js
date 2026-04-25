@@ -1,7 +1,7 @@
 import BaseScene from './BaseScene.js';
 import { createButton, createPill, drawRoundedPanel, makeLabel, makeThemeText } from '../utils/ui.js';
 import { ApiRequestError, fetchBattleSession, settleBattleSession, startBattleSession } from '../data/api.js';
-import { getCurrentPlayer, getSession, refreshPlayerSession } from '../data/session.js';
+import { getCurrentPlayer, getSession, refreshHomeOverview, refreshPlayerSession, setBattleSettlement } from '../data/session.js';
 
 function isInterfaceMissing(error) {
   return error instanceof ApiRequestError && error.status === 404;
@@ -216,6 +216,7 @@ export default class BattleScene extends BaseScene {
     try {
       await startBattleSession(this.player.account, this.chapterId);
       await refreshPlayerSession(this.player.account);
+      await refreshHomeOverview(this.player.account).catch(() => null);
       await this.loadBattleSession();
       this.feedback.setText('战斗会话已创建。');
     } catch (error) {
@@ -226,15 +227,16 @@ export default class BattleScene extends BaseScene {
   async handleSettle(result) {
     this.feedback.setText(`正在提交 ${result === 'victory' ? '通关' : '失败'} 结果...`);
     try {
-      await settleBattleSession(this.player.account, result);
+      const settlement = await settleBattleSession(this.player.account, result);
       await refreshPlayerSession(this.player.account);
+      await refreshHomeOverview(this.player.account).catch(() => null);
       this.player = getCurrentPlayer();
       this.chapterId = Number(this.player.currentChapterId || this.player.chapterId || 1);
       this.chapter = getSession().chapterOverview?.chapters?.find((item) => Number(item.id) === this.chapterId)
         || getSession().chapters?.find((item) => Number(item.id) === this.chapterId)
         || null;
-      await this.loadBattleSession();
-      this.feedback.setText(result === 'victory' ? '通关已提交，章节进度已刷新。' : '失败结果已提交。');
+      setBattleSettlement(settlement);
+      this.scene.start('ResultScene');
     } catch (error) {
       this.feedback.setText(`提交结果失败：${error.message}`);
     }

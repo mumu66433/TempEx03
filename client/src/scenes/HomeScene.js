@@ -8,7 +8,7 @@ import {
   makeLabel,
   makeThemeText,
 } from '../utils/ui.js';
-import { getCurrentPlayer, getSession, refreshPlayerSession, selectCurrentChapter } from '../data/session.js';
+import { getCurrentPlayer, getSession, refreshHomeOverview, refreshPlayerSession, selectCurrentChapter } from '../data/session.js';
 
 function buildChapterSummary(chapter) {
   if (!chapter) {
@@ -42,6 +42,7 @@ export default class HomeScene extends BaseScene {
     super('HomeScene');
     this.selectedChapterId = null;
     this.feedbackTimer = null;
+    this.homeOverview = null;
   }
 
   async create() {
@@ -136,6 +137,13 @@ export default class HomeScene extends BaseScene {
       this.scene.start('BattleScene');
     });
 
+    this.homeSummary = makeLabel(this, 375, 1416, '', {
+      fontSize: '15px',
+      color: '#94a3b8',
+      wordWrap: { width: 520 },
+      align: 'center',
+    });
+
     this.feedbackText = makeLabel(this, 375, 1544, '', {
       fontSize: '15px',
       color: '#94a3b8',
@@ -164,6 +172,7 @@ export default class HomeScene extends BaseScene {
 
     try {
       await refreshPlayerSession(player.account);
+      this.homeOverview = await refreshHomeOverview(player.account).catch(() => null);
       this.renderChapterOverview();
     } catch (error) {
       this.sectionState.setText(`加载失败：${error.message}`);
@@ -174,6 +183,7 @@ export default class HomeScene extends BaseScene {
       this.chapterDetail.setText('当前无法读取章节列表。\n如果后端离线，这属于接口失败；如果后端在线但无章节配置，这会在下一步显示为空数据。');
       const backend = getSession().backend;
       this.chapterWarning.setText(backend.ready ? '后端在线，但当前请求未成功，请检查账号或接口返回。' : `后端不可用：${backend.message}`);
+      this.homeSummary.setText('当前无法读取首页摘要。');
     }
   }
 
@@ -185,6 +195,7 @@ export default class HomeScene extends BaseScene {
 
     this.playerName.setText(player.nickname || player.name || '少侠');
     this.playerMeta.setText(`${player.account} · 已解锁至第 ${player.highestUnlockedChapterId || 1} 章`);
+    this.homeSummary.setText(this.buildHomeSummary());
 
     if (!chapters.length) {
       this.sectionState.setVisible(true);
@@ -195,6 +206,7 @@ export default class HomeScene extends BaseScene {
       this.chapterDetail.setText('暂无章节配置，请检查 `/api/config/chapter`。');
       this.chapterWarning.setText('这是 README 约定的空态：前端不生成假章节。');
       this.startButton.container.setAlpha(0.5);
+      this.homeSummary.setText(this.buildHomeSummary());
       return;
     }
 
@@ -265,8 +277,11 @@ export default class HomeScene extends BaseScene {
       ? `推荐战力：生命 ${chapter.guessHeroLife ?? '-'} / 攻击 ${chapter.guessHeroAtk ?? '-'}。当前版本不强拦截，仍允许进入挑战。`
       : '');
     this.startButton.bg.setFillStyle(chapter.unlocked ? 0x2563eb : 0x334155, 1);
-    this.startButton.label.setText(chapter.unlocked ? '开始战斗' : '尚未解锁');
+    const activeSession = this.homeOverview?.battleSession?.status === 'active'
+      && Number(this.homeOverview?.battleSession?.chapterId) === Number(chapter.id);
+    this.startButton.label.setText(chapter.unlocked ? (activeSession ? '继续战斗' : '开始战斗') : '尚未解锁');
     this.renderChapterCards(chapters);
+    this.homeSummary.setText(this.buildHomeSummary());
 
     if (options.silent || chapter.isCurrent || !chapter.unlocked) {
       if (!chapter.unlocked) {
@@ -294,5 +309,24 @@ export default class HomeScene extends BaseScene {
       this.feedbackText.setText('');
       this.feedbackTimer = null;
     });
+  }
+
+  buildHomeSummary() {
+    if (!this.homeOverview) {
+      return '首页摘要待后端接口返回。';
+    }
+
+    const skillSummary = this.homeOverview.skillSummary || {};
+    const role = this.homeOverview.role || {};
+    const battleSession = this.homeOverview.battleSession;
+    const segments = [
+      `角色：${role.name || '默认角色'}`,
+      `功法已解锁：${skillSummary.unlocked ?? '-'}/${skillSummary.total ?? '-'}`,
+      `可升级：${skillSummary.upgradeable ?? '-'}`,
+    ];
+    if (battleSession?.status === 'active') {
+      segments.push(`存在进行中战斗：第 ${battleSession.chapterId} 章`);
+    }
+    return segments.join(' · ');
   }
 }

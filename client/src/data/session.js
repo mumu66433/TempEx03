@@ -1,4 +1,4 @@
-import { fetchChapterConfig, fetchHealth, fetchPlayerChapters, fetchPlayerProfile, updatePlayerCurrentChapter } from './api.js';
+import { fetchChapterConfig, fetchHealth, fetchPlayerChapters, fetchPlayerHome, fetchPlayerProfile, updatePlayerCurrentChapter } from './api.js';
 import { DEFAULT_PLAYER } from './gameData.js';
 import { getSavedPlayer, savePlayer } from '../utils/storage.js';
 
@@ -6,6 +6,8 @@ const session = {
   chapters: [],
   chapterOverview: null,
   profile: null,
+  homeOverview: null,
+  battleSettlement: null,
   backend: {
     ready: false,
     lastCheckedAt: '',
@@ -139,6 +141,16 @@ export async function refreshPlayerSession(account = getCurrentPlayer().account)
   return session;
 }
 
+export async function refreshHomeOverview(account = getCurrentPlayer().account) {
+  if (!account) {
+    throw new Error('账号不能为空');
+  }
+
+  const payload = await fetchPlayerHome(account);
+  session.homeOverview = payload;
+  return session.homeOverview;
+}
+
 export async function selectCurrentChapter(chapterId) {
   const account = getCurrentPlayer().account;
   if (!account) {
@@ -157,5 +169,10 @@ export function updateSessionAfterAuth(player) {
   session.profile = buildPlayerProfile(player);
   savePlayer(session.profile);
   session.chapterOverview = null;
+  session.homeOverview = null;
   return session.profile;
+}
+
+export function setBattleSettlement(settlement) {
+  session.battleSettlement = settlement;
 }
