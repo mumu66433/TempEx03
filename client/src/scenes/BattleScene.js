@@ -8,7 +8,18 @@ import {
   drawV0Panel,
   makeV0Text,
 } from '../utils/v0ui.js';
-import { ApiRequestError, fetchBattleSession, settleBattleSession, simulateBattleSession, startBattleSession } from '../data/api.js';
+import {
+  ApiRequestError,
+  confirmBattleSkillCandidate,
+  fetchBattleSession,
+  fetchBattleSessionBuild,
+  fetchBattleSkillCandidates,
+  fetchPlayerBuild,
+  refreshBattleSkillCandidates,
+  settleBattleSession,
+  simulateBattleSessionStep,
+  startBattleSession,
+} from '../data/api.js';
 import {
   buildBattleSummaryLines,
   formatBattleResult,
@@ -22,6 +33,15 @@ import { getCurrentPlayer, getSession, refreshHomeOverview, refreshPlayerSession
 const AUTO_PLAY_DELAY = 900;
 const SETTLE_DELAY = 700;
 const MAX_VISIBLE_LOGS = 6;
+const BUILD_CARD_COUNT = 3;
+
+const GRADE_COLORS = {
+  N: 0x9aa4b2,
+  R: 0x4c89d9,
+  SR: 0x8a63d2,
+  SSR: 0xd99a3d,
+  UR: 0xd94f5c,
+};
 
 function isInterfaceMissing(error) {
   return error instanceof ApiRequestError && error.status === 404;
@@ -71,18 +91,54 @@ function getActorRatio(actor) {
   return actor.life / actor.maxLife;
 }
 
-function buildBuildTexts(simulation, session) {
-  const labels = [];
-  if (simulation?.summary?.lines?.length) {
-    labels.push(...simulation.summary.lines.slice(0, 2));
+function getGradeFill(grade) {
+  return GRADE_COLORS[grade] || 0xe9dfc9;
+}
+
+function normalizeBuildBar(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return {
+      capacity: 20,
+      used: 0,
+      remaining: 20,
+      slots: [],
+      effectsPreview: [],
+      display: { summaryText: '构筑条等待后端数据' },
+    };
   }
-  if (session?.waveType) {
-    labels.push(`${session.waveType} 波`);
-  }
-  while (labels.length < 3) {
-    labels.push('待获得功法');
-  }
-  return labels.slice(0, 3);
+
+  const capacity = Number(payload.capacity ?? payload.buildBar?.capacity ?? 20);
+  const slots = Array.isArray(payload.slots)
+    ? payload.slots
+    : Array.isArray(payload.buildBar?.slots)
+      ? payload.buildBar.slots
+      : [];
+  const used = Number(payload.used ?? payload.buildBar?.used ?? slots.length);
+  const remaining = Number(payload.remaining ?? payload.buildBar?.remaining ?? Math.max(0, capacity - used));
+
+  return {
+    ...payload,
+    capacity,
+    used,
+    remaining,
+    slots,
+    effectsPreview: Array.isArray(payload.effectsPreview) ? payload.effectsPreview : [],
+    display: payload.display || payload.buildBar?.display || {},
+  };
+}
+
+function getFlow(payload) {
+  return payload?.flow || payload?.raw?.flow || {};
+}
+
+function isChoiceRequired(payload, session) {
+  const flow = getFlow(payload);
+  return Boolean(flow.requiresSkillChoice || flow.nextState === 'choice' || session?.status === 'choice');
+}
+
+function isSettlementReady(payload, session, result) {
+  const flow = getFlow(payload);
+  return Boolean(flow.canSettle || flow.nextState === 'finished' || session?.status === 'finished' || result);
 }
 
 function pickWaveBannerText(text, fallback = '等待波次推进') {
@@ -111,6 +167,11 @@ export default class BattleScene extends BaseScene {
     this.settleTimer = null;
     this.pendingSettlementResult = null;
     this.overlayMode = null;
+    this.buildBar = normalizeBuildBar(null);
+    this.choiceOverlay = null;
+    this.choicePayload = null;
+    this.selectedCandidateId = null;
+    this.choiceBusy = false;
   }
 
   create() {
@@ -301,6 +362,11 @@ export default class BattleScene extends BaseScene {
       makeV0Text(this, 264, 1380, '待获得功法', { fontSize: '18px', fontStyle: '700', color: V0_COLORS.darkText, wordWrap: { width: 94 } }),
       makeV0Text(this, 398, 1380, '待获得功法', { fontSize: '18px', fontStyle: '700', color: V0_COLORS.darkText, wordWrap: { width: 94 } }),
     ];
+    this.buildMoreText = makeV0Text(this, 490, 1372, '读取中', {
+      fontSize: '18px',
+      color: V0_COLORS.mutedText,
+      wordWrap: { width: 88 },
+    });
     this.pauseButton = createV0Button(this, 609, 1367, 138, 74, '暂停', 'secondary', () => {
       this.openPauseOverlay();
     }, { fontSize: '28px' });
@@ -441,6 +507,23 @@ export default class BattleScene extends BaseScene {
     this.updateBuildBar();
   }
 
+  async loadBuildBar() {
+    try {
+      const payload = this.battleSession?.id
+        ? await fetchBattleSessionBuild(this.player.account, this.battleSession.id)
+        : await fetchPlayerBuild(this.player.account);
+      this.buildBar = normalizeBuildBar(payload);
+    } catch (error) {
+      this.buildBar = normalizeBuildBar({
+        display: {
+          summaryText: `构筑条读取失败：${error.message}`,
+        },
+      });
+    }
+
+    this.updateBuildBar();
+  }
+
   updateStageSnapshots(hero = null, enemy = null) {
     const heroSnapshot = buildHeroSnapshot(this.player, this.chapter, hero || this.simulation?.hero || null);
     const enemySnapshot = buildEnemySnapshot(this.battleSession, enemy || this.simulation?.enemy || null);
@@ -451,9 +534,35 @@ export default class BattleScene extends BaseScene {
   }
 
   updateBuildBar() {
-    const labels = buildBuildTexts(this.simulation, this.battleSession);
+    const slots = this.buildBar?.slots || [];
+    const capacity = this.buildBar?.capacity ?? 20;
+    const used = this.buildBar?.used ?? slots.length;
+    const summaryText = this.buildBar?.display?.summaryText || `已拥有 ${used}/${capacity}`;
+
+    this.buildTitle.setText(`本局构筑条 ${used}/${capacity}`);
+    this.buildHint.setText(slots.length ? summaryText : '暂无已拥有功法，需通过三选一获得真实构筑');
+    this.buildMoreText.setText(slots.length > BUILD_CARD_COUNT ? `+${slots.length - BUILD_CARD_COUNT}` : `${this.buildBar?.remaining ?? Math.max(0, capacity - used)} 空位`);
+
     this.buildTexts.forEach((textNode, index) => {
-      textNode.setText(labels[index]);
+      const slot = slots[index];
+      if (!slot) {
+        this.buildCards[index].redraw({
+          fill: 0xe9dfc9,
+          stroke: V0_COLORS.panelStroke,
+          fillAlpha: 1,
+        });
+        textNode.setText(index === 0 ? '暂无功法' : '待选择');
+        textNode.setColor(V0_COLORS.mutedText);
+        return;
+      }
+
+      this.buildCards[index].redraw({
+        fill: getGradeFill(slot.grade),
+        stroke: V0_COLORS.panelStroke,
+        fillAlpha: 0.92,
+      });
+      textNode.setText(`${slot.name || '未知功法'}\nLv.${slot.level ?? 0} · ${slot.stars ?? 0}星`);
+      textNode.setColor('#ffffff');
     });
   }
 
@@ -472,7 +581,7 @@ export default class BattleScene extends BaseScene {
   applyMode(mode, feedback = '') {
     this.currentMode = mode;
     const canStep = this.logEntries.length > 0 && this.playbackIndex < this.logEntries.length && !this.autoPlayEnabled && mode === 'playback-ready';
-    const canAction = ['ready', 'active-ready', 'failed', 'simulate-missing', 'interface-missing', 'settled', 'settlement-error'].includes(mode);
+    const canAction = ['ready', 'active-ready', 'choice-ready', 'failed', 'simulate-missing', 'interface-missing', 'settled', 'settlement-error'].includes(mode);
     this.stepButton.setVisible(canStep);
     this.actionButton.setVisible(canAction);
     this.feedbackText.setText(feedback);
@@ -500,15 +609,37 @@ export default class BattleScene extends BaseScene {
     this.chapterTitle.setText(`第${session.chapterId || this.chapterId}章 ${session.chapter?.name || this.chapter?.name || '当前章节'}`);
     this.waveText.setText(`第${session.layerIndex ?? '-'}层 第${session.waveIndex ?? '-'}波 / 共${this.chapter?.totalWaveEstimate ?? '-'}波`);
     this.wavePill.label.setText(session.waveType || '普通波');
-    this.latestReport.setText(session.status === 'settled' ? '本局已结算，可重新挑战' : '会话已创建，准备生成最新战报');
+
+    if (session.status === 'choice') {
+      this.latestReport.setText('普通波胜利，等待选择功法');
+      this.latestMeta.setText('当前节奏：读取三选一候选功法');
+      this.bannerText.setText('请选择一门功法');
+      this.summaryLine.setText('本波已完成 · 等待三选一 · 构筑条来自后端');
+      this.actionButton.setText('选择功法');
+      this.applyMode('choice-ready', '等待选择功法');
+      return;
+    }
+
+    if (session.status === 'finished') {
+      this.latestReport.setText('本章战斗完成，等待结算');
+      this.latestMeta.setText(`当前节奏：准备提交${formatBattleResult(session.result)}结算`);
+      this.bannerText.setText(session.result === 'victory' ? '章节挑战胜利' : '章节挑战失败');
+      this.summaryLine.setText(`累计记录 ${this.playedLogs.length} · 结果 ${formatBattleResult(session.result)} · 可进入结算`);
+      this.pendingSettlementResult = session.result;
+      this.actionButton.setText('进入结算');
+      this.applyMode('settlement-error', '等待提交结算');
+      return;
+    }
+
+    this.latestReport.setText(session.status === 'settled' ? '本局已结算，可重新挑战' : '会话已创建，准备推进下一波');
     this.latestMeta.setText(session.status === 'settled'
       ? '当前节奏：可重新开始本章战斗'
-      : '当前节奏：点击按钮请求服务端模拟战斗');
+      : '当前节奏：点击按钮请求服务端逐波模拟');
     this.bannerText.setText(session.status === 'settled' ? '本局结算完成' : '等待波次推进');
     this.summaryLine.setText(session.status === 'settled'
-      ? `累计记录 ${this.playedLogs.length} · 结果 ${formatBattleResult(session.result)} · 主功法待接入`
-      : '累计记录 0 · 结果待定 · 主功法待接入');
-    this.actionButton.setText(session.status === 'settled' ? '再次挑战' : '开始战斗');
+      ? `累计记录 ${this.playedLogs.length} · 结果 ${formatBattleResult(session.result)} · 构筑条已同步`
+      : '累计记录 0 · 结果待定 · 构筑条已接真实接口');
+    this.actionButton.setText(session.status === 'settled' ? '再次挑战' : '推进一波');
     this.applyMode(session.status === 'settled' ? 'settled' : 'active-ready', session.status === 'settled' ? '本局已结算' : '会话已创建');
   }
 
@@ -521,6 +652,7 @@ export default class BattleScene extends BaseScene {
       this.battleSession = normalizeBattleSession(payload.session || null);
       this.syncSceneState(this.battleSession?.chapterId || this.chapterId);
       this.renderBattleSession();
+      await this.loadBuildBar();
     } catch (error) {
       this.battleSession = null;
       this.actionButton.setText('重新读取');
@@ -538,13 +670,28 @@ export default class BattleScene extends BaseScene {
       return;
     }
 
+    if (this.currentMode === 'choice-ready' || this.battleSession?.status === 'choice') {
+      await this.openSkillChoiceOverlay();
+      return;
+    }
+
+    if (this.currentMode === 'settlement-error' || this.battleSession?.status === 'finished') {
+      await this.retrySettlement();
+      return;
+    }
+
     if (!this.battleSession || this.battleSession.status === 'settled') {
       await this.startAndSimulateBattle();
       return;
     }
 
     if (this.battleSession.status === 'active' && !this.simulation) {
-      await this.requestBattleSimulation();
+      await this.requestBattleSimulationStep();
+      return;
+    }
+
+    if (this.battleSession.status === 'active') {
+      await this.requestBattleSimulationStep();
     }
   }
 
@@ -558,7 +705,8 @@ export default class BattleScene extends BaseScene {
       const payload = await startBattleSession(this.player.account, this.chapterId);
       this.battleSession = normalizeBattleSession(payload.session || null);
       this.syncSceneState(this.battleSession?.chapterId || this.chapterId);
-      await this.requestBattleSimulation();
+      await this.loadBuildBar();
+      await this.requestBattleSimulationStep();
     } catch (error) {
       this.latestReport.setText('开始战斗失败');
       this.latestMeta.setText(error.message);
@@ -566,20 +714,22 @@ export default class BattleScene extends BaseScene {
     }
   }
 
-  async requestBattleSimulation() {
+  async requestBattleSimulationStep() {
     if (!this.battleSession) {
       this.applyMode('failed', '当前没有可模拟的会话');
       return;
     }
 
     this.resetPlayback();
-    this.latestReport.setText('正在请求战斗模拟');
-    this.latestMeta.setText('当前节奏：等待服务端返回文字战报');
-    this.applyMode('loading', '正在请求战斗模拟');
+    this.latestReport.setText('正在推进当前波次');
+    this.latestMeta.setText('当前节奏：等待服务端逐波模拟');
+    this.actionButton.setText('推进中');
+    this.applyMode('loading', '正在请求逐波模拟');
 
     try {
-      const payload = await simulateBattleSession(this.player.account, this.battleSession.id, this.chapterId);
+      const payload = await simulateBattleSessionStep(this.player.account);
       this.simulation = normalizeBattleSimulation(payload, this.battleSession);
+      this.simulation.flow = payload.flow || null;
       this.battleSession = this.simulation.session || this.battleSession;
       this.syncSceneState(this.battleSession?.chapterId || this.chapterId);
       this.logEntries = this.simulation.logs.length
@@ -592,7 +742,7 @@ export default class BattleScene extends BaseScene {
       this.updateBuildBar();
       this.wavePill.label.setText(this.battleSession.waveType || '普通波');
       this.latestReport.setText(this.logEntries[0]?.text || '战报已生成');
-      this.latestMeta.setText(`当前节奏：已收到 ${this.logEntries.length} 条服务端战报`);
+      this.latestMeta.setText(`当前节奏：已收到 ${this.logEntries.length} 条当前波战报`);
       this.bannerText.setText('等待波次推进');
       this.updateSummaryLine();
       this.applyMode('playback-ready', this.autoPlayEnabled ? '准备自动播放战报' : '等待手动推进');
@@ -601,7 +751,7 @@ export default class BattleScene extends BaseScene {
         this.startAutoPlayback();
       }
     } catch (error) {
-      this.latestReport.setText(isInterfaceMissing(error) ? '模拟接口未就绪' : '战斗模拟失败');
+      this.latestReport.setText(isInterfaceMissing(error) ? '逐波模拟接口未就绪' : '战斗模拟失败');
       this.latestMeta.setText(error.message);
       this.applyMode(isInterfaceMissing(error) ? 'simulate-missing' : 'failed', error.message);
     }
@@ -660,6 +810,30 @@ export default class BattleScene extends BaseScene {
 
   finishPlayback() {
     this.clearTimers();
+    if (isChoiceRequired(this.simulation, this.battleSession)) {
+      this.pendingSettlementResult = null;
+      this.latestReport.setText('本波胜利，等待选择功法');
+      this.latestMeta.setText('当前节奏：普通 / 精英胜利后进入三选一');
+      this.bannerText.setText('选择一门功法继续挑战');
+      this.actionButton.setText('选择功法');
+      this.updateSummaryLine();
+      this.applyMode('choice-ready', '等待选择功法');
+      this.settleTimer = this.time.delayedCall(SETTLE_DELAY, () => {
+        this.openSkillChoiceOverlay();
+      });
+      return;
+    }
+
+    if (!isSettlementReady(this.simulation, this.battleSession, this.pendingSettlementResult)) {
+      this.pendingSettlementResult = null;
+      this.latestReport.setText('当前波次已完成');
+      this.latestMeta.setText('当前节奏：后端未要求结算，继续推进下一波');
+      this.bannerText.setText('继续下一波');
+      this.actionButton.setText('推进一波');
+      this.updateSummaryLine();
+      this.applyMode('active-ready', '可继续推进下一波');
+      return;
+    }
     if (!this.pendingSettlementResult) {
       this.applyMode('settlement-error', '后端未返回最终结果，无法继续结算');
       return;
@@ -673,6 +847,296 @@ export default class BattleScene extends BaseScene {
     this.settleTimer = this.time.delayedCall(SETTLE_DELAY, () => {
       this.retrySettlement();
     });
+  }
+
+  destroyChoiceOverlay() {
+    if (this.choiceOverlay) {
+      this.choiceOverlay.destroy(true);
+      this.choiceOverlay = null;
+    }
+  }
+
+  async openSkillChoiceOverlay() {
+    if (this.choiceBusy) {
+      return;
+    }
+
+    this.clearTimers();
+    this.destroyChoiceOverlay();
+    this.selectedCandidateId = null;
+    this.choicePayload = null;
+    this.renderSkillChoiceOverlay({
+      display: {
+        title: '选择一门功法',
+        subtitle: '正在读取后端候选功法',
+      },
+      candidates: [],
+      loading: true,
+    });
+
+    try {
+      const payload = await fetchBattleSkillCandidates(this.player.account, this.battleSession?.id || '');
+      this.choicePayload = payload;
+      this.renderSkillChoiceOverlay(payload);
+    } catch (error) {
+      this.renderSkillChoiceOverlay({
+        display: {
+          title: '功法刷新失败',
+          subtitle: error.message || '候选功法未更新，请重试',
+        },
+        candidates: [],
+        error,
+      });
+    }
+  }
+
+  renderSkillChoiceOverlay(payload) {
+    this.destroyChoiceOverlay();
+    const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
+    const display = payload?.display || {};
+    const isLoading = Boolean(payload?.loading);
+    const hasError = Boolean(payload?.error);
+    const selected = candidates.find((candidate) => candidate.candidateId === this.selectedCandidateId);
+
+    this.choiceOverlay = this.add.container(0, 0);
+    const mask = this.add.rectangle(375, 812, 750, 1624, 0x09111d, 0.66);
+    const panel = drawV0Panel(this, 375, 798, 672, 760, {
+      fill: V0_COLORS.panel,
+      stroke: V0_COLORS.panelStroke,
+      radius: 38,
+    });
+    const title = makeV0Text(this, 375, 484, display.title || '选择一门功法', {
+      fontSize: '42px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    });
+    const subtitle = makeV0Text(this, 375, 536, display.subtitle || `本轮候选 ${candidates.length} 门，可刷新 ${payload?.maxRefreshCount ?? 1} 次`, {
+      fontSize: '22px',
+      color: V0_COLORS.mutedText,
+      wordWrap: { width: 548 },
+    });
+    const hint = makeV0Text(this, 375, 1094, this.getChoiceHint(payload, selected), {
+      fontSize: '20px',
+      color: hasError ? '#b55b57' : V0_COLORS.mutedText,
+      wordWrap: { width: 548 },
+    });
+    const refreshButton = createV0Button(this, 222, 1182, 240, 68, isLoading ? '读取中' : payload?.canRefresh === false ? '已刷新' : '刷新一次', 'secondary', () => {
+      this.refreshChoiceCandidates();
+    }, { fontSize: '24px' });
+    const confirmButton = createV0Button(this, 528, 1182, 240, 68, this.choiceBusy ? '选择中' : '确认选择', 'primary', () => {
+      this.confirmSelectedChoice();
+    }, { fontSize: '24px' });
+    const retryButton = createV0Button(this, 375, 1020, 260, 66, '重试读取', 'primary', () => {
+      this.openSkillChoiceOverlay();
+    }, { fontSize: '24px' });
+
+    refreshButton.setEnabled(!isLoading && !hasError && payload?.canRefresh !== false && !this.choiceBusy);
+    confirmButton.setEnabled(Boolean(selected) && !this.choiceBusy && !hasError);
+    retryButton.setVisible(hasError);
+
+    this.choiceOverlay.add([mask, panel, title, subtitle, hint, refreshButton.container, confirmButton.container, retryButton.container]);
+
+    if (isLoading) {
+      this.renderChoiceStateText('候选读取中', '正在请求 `/api/battle/session/skill-candidates`。');
+      return;
+    }
+
+    if (hasError) {
+      this.renderChoiceStateText('功法刷新失败', display.subtitle || '候选功法未更新，请重试。');
+      return;
+    }
+
+    if (!candidates.length) {
+      this.renderChoiceStateText(display.emptyText || '暂无可选功法', '后端未返回候选功法，当前不会使用假功法数据兜底。');
+      return;
+    }
+
+    candidates.slice(0, 3).forEach((candidate, index) => {
+      this.renderChoiceCard(candidate, index);
+    });
+  }
+
+  renderChoiceStateText(titleText, descText) {
+    const title = makeV0Text(this, 375, 742, titleText, {
+      fontSize: '34px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+    });
+    const desc = makeV0Text(this, 375, 800, descText, {
+      fontSize: '22px',
+      color: V0_COLORS.mutedText,
+      wordWrap: { width: 500 },
+    });
+    this.choiceOverlay.add([title, desc]);
+  }
+
+  renderChoiceCard(candidate, index) {
+    const x = 156 + index * 219;
+    const selected = candidate.candidateId === this.selectedCandidateId;
+    const disabled = candidate.selectState && candidate.selectState !== 'available';
+    const maxed = Boolean(candidate.isMaxStars);
+    const canSelect = !disabled && !maxed && !this.choiceBusy;
+    const card = createV0VerticalCard(this, x, 804, 192, 430, {
+      fill: selected ? V0_COLORS.goldLight : V0_COLORS.panelAlt,
+      stroke: selected ? V0_COLORS.goldStroke : V0_COLORS.panelStroke,
+      radius: 28,
+      fillAlpha: canSelect ? 1 : 0.58,
+      strokeAlpha: selected ? 1 : 0.78,
+    });
+    const grade = createV0Pill(this, x, 620, 70, 36, candidate.grade || 'N', {
+      fill: getGradeFill(candidate.grade),
+      stroke: getGradeFill(candidate.grade),
+      color: '#ffffff',
+      fontSize: '18px',
+    });
+    const name = makeV0Text(this, x, 672, candidate.name || '未知功法', {
+      fontSize: '26px',
+      fontStyle: '700',
+      color: V0_COLORS.darkText,
+      wordWrap: { width: 148 },
+    });
+    const meta = makeV0Text(this, x, 734, [candidate.sectType, candidate.moldType].filter(Boolean).join(' / ') || '门派待定', {
+      fontSize: '18px',
+      color: V0_COLORS.mutedText,
+      wordWrap: { width: 148 },
+    });
+    const desc = makeV0Text(this, x, 830, candidate.desc || '后端未提供功法描述。', {
+      fontSize: '18px',
+      color: V0_COLORS.darkText,
+      lineSpacing: 8,
+      wordWrap: { width: 148 },
+    });
+    const stars = makeV0Text(this, x, 972, `${candidate.stars ?? 0}/${candidate.maxStars ?? 3} 星 · Lv.${candidate.levelPreview ?? candidate.level ?? 0}`, {
+      fontSize: '18px',
+      color: V0_COLORS.mutedText,
+      wordWrap: { width: 148 },
+    });
+    const stateText = maxed ? '已满星' : disabled ? (candidate.disabledReason || '不可选') : selected ? '已选中' : candidate.owned ? '升星收益' : '新功法';
+    const state = createV0Pill(this, x, 1034, 122, 34, stateText, {
+      fill: maxed || disabled ? 0xe5ded2 : selected ? V0_COLORS.gold : 0xdff4df,
+      fontSize: '16px',
+      radius: 14,
+    });
+    const hit = this.add.zone(x, 804, 192, 430).setOrigin(0.5);
+    hit.setInteractive({ useHandCursor: canSelect });
+    hit.on('pointerdown', () => {
+      if (!canSelect) {
+        this.feedbackText.setText(candidate.disabledReason || '该功法当前不可选择');
+        return;
+      }
+      this.selectedCandidateId = candidate.candidateId;
+      this.renderSkillChoiceOverlay(this.choicePayload);
+    });
+    this.choiceOverlay.add([card, grade.container, name, meta, desc, stars, state.container, hit]);
+  }
+
+  getChoiceHint(payload, selected) {
+    if (payload?.loading) {
+      return '加载中会禁用刷新与确认，避免重复请求。';
+    }
+    if (payload?.error) {
+      return '接口失败时保留弹窗，不使用假候选功法掩盖问题。';
+    }
+    if (!Array.isArray(payload?.candidates) || !payload.candidates.length) {
+      return payload?.display?.emptyText || '暂无可选功法，请联系后端确认候选池。';
+    }
+    if (selected) {
+      return `已选择：${selected.name || '未知功法'}，确认后会写入后端构筑条。`;
+    }
+    return payload?.capacity ? `本局构筑容量 ${payload.capacity}，请选择 1 门功法继续。` : '请选择 1 门功法继续下一波。';
+  }
+
+  async refreshChoiceCandidates() {
+    if (this.choiceBusy || !this.choicePayload) {
+      return;
+    }
+
+    this.choiceBusy = true;
+    this.selectedCandidateId = null;
+    this.renderSkillChoiceOverlay({
+      ...this.choicePayload,
+      loading: true,
+      display: {
+        ...(this.choicePayload.display || {}),
+        title: '刷新候选功法',
+        subtitle: '正在请求后端刷新本轮三选一',
+      },
+    });
+
+    try {
+      const payload = await refreshBattleSkillCandidates(this.player.account, this.choicePayload.sessionId || this.battleSession?.id || '');
+      this.choicePayload = payload;
+      this.choiceBusy = false;
+      this.renderSkillChoiceOverlay(payload);
+    } catch (error) {
+      this.choiceBusy = false;
+      this.renderSkillChoiceOverlay({
+        ...this.choicePayload,
+        error,
+        display: {
+          ...(this.choicePayload.display || {}),
+          title: '功法刷新失败',
+          subtitle: error.message || '候选功法未更新，请重试',
+        },
+      });
+    }
+  }
+
+  async confirmSelectedChoice() {
+    if (this.choiceBusy || !this.choicePayload) {
+      return;
+    }
+
+    const selected = (this.choicePayload.candidates || []).find((candidate) => candidate.candidateId === this.selectedCandidateId);
+    if (!selected) {
+      this.feedbackText.setText('请先选择一门功法');
+      return;
+    }
+
+    this.choiceBusy = true;
+    this.renderSkillChoiceOverlay(this.choicePayload);
+
+    try {
+      const payload = await confirmBattleSkillCandidate(this.player.account, {
+        ...selected,
+        sessionId: this.choicePayload.sessionId || this.battleSession?.id || '',
+      });
+      if (payload.buildBar) {
+        this.buildBar = normalizeBuildBar(payload.buildBar);
+        this.updateBuildBar();
+      } else {
+        await this.loadBuildBar();
+      }
+      const sessionPayload = await fetchBattleSession(this.player.account).catch(() => null);
+      if (sessionPayload?.session) {
+        this.battleSession = normalizeBattleSession(sessionPayload.session);
+      } else {
+        this.battleSession = {
+          ...(this.battleSession || {}),
+          status: 'active',
+        };
+      }
+      this.choiceBusy = false;
+      this.destroyChoiceOverlay();
+      this.choicePayload = null;
+      this.selectedCandidateId = null;
+      this.latestReport.setText(payload.selected?.statusText || '功法已写入构筑条');
+      this.latestMeta.setText('当前节奏：确认选择成功，继续推进下一波');
+      this.actionButton.setText('推进一波');
+      this.applyMode('active-ready', '功法选择成功');
+      await this.requestBattleSimulationStep();
+    } catch (error) {
+      this.choiceBusy = false;
+      this.renderSkillChoiceOverlay({
+        ...this.choicePayload,
+        error,
+        display: {
+          ...(this.choicePayload.display || {}),
+          title: '选择提交失败',
+          subtitle: error.message || '确认选择失败，请重试',
+        },
+      });
+    }
   }
 
   toggleAutoPlay() {

@@ -71,6 +71,11 @@ export async function fetchPlayerSkills(account) {
   return requestJson(`/player/skills?${query.toString()}`);
 }
 
+export async function fetchPlayerBuild(account) {
+  const query = new URLSearchParams({ account });
+  return requestJson(`/player/build?${query.toString()}`);
+}
+
 export async function updatePlayerCurrentChapter(account, chapterId) {
   return requestJson('/player/current-chapter', {
     method: 'PATCH',
@@ -113,12 +118,58 @@ export async function simulateBattleSession(account, sessionId, chapterId) {
   });
 }
 
-export async function settleBattleSession(account, result) {
+export async function simulateBattleSessionStep(account) {
+  return requestJson('/battle/session/simulate-step', {
+    method: 'POST',
+    body: JSON.stringify({
+      account,
+    }),
+  });
+}
+
+export async function settleBattleSession(account) {
   return requestJson('/battle/session/settle', {
     method: 'POST',
     body: JSON.stringify({
       account,
-      result,
     }),
   });
+}
+
+export async function fetchBattleSkillCandidates(account, sessionId = '') {
+  const query = new URLSearchParams({ account });
+  if (sessionId) {
+    query.set('sessionId', sessionId);
+  }
+  return requestJson(`/battle/session/skill-candidates?${query.toString()}`);
+}
+
+export async function refreshBattleSkillCandidates(account, sessionId = '') {
+  return requestJson('/battle/session/skill-candidates/refresh', {
+    method: 'POST',
+    body: JSON.stringify({
+      account,
+      ...(sessionId ? { sessionId } : {}),
+    }),
+  });
+}
+
+export async function confirmBattleSkillCandidate(account, candidate) {
+  return requestJson('/battle/session/skill-candidates/confirm', {
+    method: 'POST',
+    body: JSON.stringify({
+      account,
+      sessionId: candidate.sessionId,
+      candidateId: candidate.candidateId,
+      skillId: candidate.skillId,
+    }),
+  });
+}
+
+export async function fetchBattleSessionBuild(account, sessionId = '') {
+  const query = new URLSearchParams({ account });
+  if (sessionId) {
+    query.set('sessionId', sessionId);
+  }
+  return requestJson(`/battle/session/build?${query.toString()}`);
 }
