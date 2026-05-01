@@ -2,7 +2,7 @@ const express = require('express');
 const { getPlayerProfileByAccount } = require('../services/authService');
 const { getPlayerChapterOverview, updateCurrentChapter } = require('../services/playerProfileService');
 const { getPlayerHomeOverview } = require('../services/playerHomeService');
-const { getPlayerSkillList } = require('../services/skillService');
+const { getPlayerBuild, getPlayerSkillList } = require('../services/skillService');
 
 function createPlayerRoutes() {
   const router = express.Router();
@@ -64,6 +64,24 @@ function createPlayerRoutes() {
   router.get('/player/skills', async (req, res) => {
     try {
       const result = await getPlayerSkillList({
+        account: req.query?.account,
+      });
+
+      res.json({
+        ok: true,
+        ...result,
+      });
+    } catch (error) {
+      res.status(400).json({
+        ok: false,
+        error: error.message,
+      });
+    }
+  });
+
+  router.get('/player/build', async (req, res) => {
+    try {
+      const result = await getPlayerBuild({
         account: req.query?.account,
       });
 

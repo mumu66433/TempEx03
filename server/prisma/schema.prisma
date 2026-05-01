@@ -18,6 +18,8 @@ model Player {
   progress     PlayerProgress?
   skillProgress PlayerSkillProgress[]
   battleSession PlayerBattleSession?
+  skillCandidates PlayerBattleSkillCandidate[]
+  buildSlots PlayerBattleBuildSlot[]
 }
 
 model PlayerProgress {
@@ -64,4 +66,37 @@ model PlayerBattleSession {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   player      Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  skillCandidates PlayerBattleSkillCandidate[]
+  buildSlots PlayerBattleBuildSlot[]
+}
+
+model PlayerBattleSkillCandidate {
+  id             String   @id @default(cuid())
+  playerId       String
+  sessionId      String
+  candidateRound Int      @default(1)
+  refreshCount   Int      @default(0)
+  skillId        Int
+  selectedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  session        PlayerBattleSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, candidateRound])
+  @@unique([sessionId, candidateRound, skillId])
+}
+
+model PlayerBattleBuildSlot {
+  id        String   @id @default(cuid())
+  playerId  String
+  sessionId String?
+  slotIndex Int
+  skillId   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  session   PlayerBattleSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@unique([playerId, skillId])
 }

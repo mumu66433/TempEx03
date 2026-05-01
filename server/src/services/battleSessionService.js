@@ -52,6 +52,16 @@ function buildSessionStatusText(session) {
     return '战斗会话进行中';
   }
 
+  if (session.status === 'choice') {
+    return '普通波胜利，等待选择功法';
+  }
+
+  if (session.status === 'finished') {
+    return session.result === 'victory'
+      ? '最终波胜利，等待结算'
+      : '战斗失败，等待结算';
+  }
+
   return session.result === 'victory'
     ? '本局已通关结算'
     : '本局已失败结算';
@@ -66,6 +76,14 @@ function buildSessionSubtitle(session) {
     return `第${session.layerIndex}层 · 第${session.waveIndex}波 · ${session.waveType || '未命名波次'}`;
   }
 
+  if (session.status === 'choice') {
+    return `第${session.layerIndex}层 · 第${session.waveIndex}波 · 选择功法后继续`;
+  }
+
+  if (session.status === 'finished') {
+    return `待结算结果：${session.result || '未结算'}`;
+  }
+
   return `结算结果：${session.result || '未结算'}`;
 }
 
@@ -77,6 +95,8 @@ function buildBattleSessionPayload(session, chapters) {
 
   const chapter = chapters.find((item) => item.id === safeSession.chapterId) || null;
   const active = safeSession.status === 'active';
+  const pendingChoice = safeSession.status === 'choice';
+  const finished = safeSession.status === 'finished';
 
   return {
     ...safeSession,
@@ -92,9 +112,10 @@ function buildBattleSessionPayload(session, chapters) {
       },
     },
     actions: {
-      canStart: !active,
+      canStart: !active && !pendingChoice,
       canSimulate: active,
-      canSettle: active,
+      canSelectSkill: pendingChoice,
+      canSettle: active || finished,
       canRetry: true,
     },
   };
@@ -408,6 +429,80 @@ function runBattleSimulation({ profile, session, chapters }) {
   };
 }
 
+function runSingleMissionSimulation({ profile, session, chapters }) {
+  const chapter = chapters.find((item) => item.id === session.chapterId) || null;
+  const missionRows = getChapterMissionRows(session.chapterId);
+  const startIndex = getMissionStartIndex(missionRows, session);
+  const mission = missionRows[startIndex];
+
+  if (!mission) {
+    throw new Error('当前章节缺少可模拟的 Mission 波次');
+  }
+
+  const hero = buildHeroSnapshot({
+    profile,
+    chapterId: session.chapterId,
+    chapters,
+  });
+  const logs = [];
+  const absoluteRoundRef = { value: 0 };
+  const enemyState = simulateMissionWave({
+    hero,
+    mission,
+    absoluteRoundRef,
+    logs,
+  });
+  const victory = hero.currentLife > 0;
+  const clearedWaves = victory ? 1 : 0;
+  const result = victory ? 'victory' : 'defeat';
+  const rewards = {
+    coin: victory ? mission.coinDrop : 0,
+    exp: victory ? mission.expDrop : 0,
+  };
+  const isFinalWave = startIndex >= missionRows.length - 1;
+  const isBossWave = isBossMission(mission);
+  const nextMission = victory && !isFinalWave ? missionRows[startIndex + 1] : null;
+  const summaryText = buildSimulationSummary({
+    result,
+    hero,
+    chapter,
+    totalWaves: 1,
+    clearedWaves,
+    rewards,
+  });
+
+  return {
+    result,
+    summaryText,
+    logs,
+    rewards,
+    finalMission: mission,
+    nextMission,
+    isBossWave,
+    isFinalWave,
+    nextState: !victory || isFinalWave || isBossWave ? 'finished' : 'choice',
+    hero: {
+      ...hero,
+      status: victory ? 'survived' : 'fallen',
+      previewText: `${hero.name} / 生命 ${hero.currentLife}/${hero.maxLife} / 攻击 ${hero.atk}`,
+    },
+    enemy: {
+      chapterId: session.chapterId,
+      chapterName: chapter?.name || '',
+      totalWaveCount: missionRows.length,
+      clearedWaveCount: startIndex + clearedWaves,
+      remainingWaveCount: Math.max(0, missionRows.length - startIndex - clearedWaves),
+      totalEnemyCount: mission.enemyCount,
+      remainingEnemyCount: victory ? 0 : enemyState.remainingCount,
+      totalEnemyLife: mission.enemyCount * mission.enemyLife,
+      remainingEnemyLife: victory ? 0 : enemyState.remainingLife,
+      currentWave: buildEnemyWaveSnapshot(mission, enemyState, victory),
+      nextWave: nextMission ? buildEnemyWaveSnapshot(nextMission) : null,
+      previewText: `${chapter?.name || '当前章节'} / 已清 ${startIndex + clearedWaves}/${missionRows.length} 波`,
+    },
+  };
+}
+
 async function persistSimulationResult({ prisma, playerId, simulation }) {
   const mission = simulation.finalMission;
 
@@ -426,6 +521,30 @@ async function persistSimulationResult({ prisma, playerId, simulation }) {
       enemyLife: mission.enemyLife,
       enemyAtk: mission.enemyAtk,
       result: simulation.result,
+      settledAt: null,
+    },
+  });
+}
+
+async function persistStepSimulationResult({ prisma, playerId, simulation }) {
+  const mission = simulation.nextMission || simulation.finalMission;
+
+  return prisma.playerBattleSession.update({
+    where: {
+      playerId,
+    },
+    data: {
+      layerIndex: mission.layerIndex,
+      waveIndex: mission.waveIndex,
+      missionId: mission.id,
+      waveType: mission.waveType,
+      enemyId: mission.enemyId,
+      enemyName: mission.enemyName,
+      enemyCount: mission.enemyCount,
+      enemyLife: mission.enemyLife,
+      enemyAtk: mission.enemyAtk,
+      status: simulation.nextState,
+      result: simulation.nextState === 'finished' ? simulation.result : null,
       settledAt: null,
     },
   });
@@ -552,19 +671,75 @@ async function simulateBattleSession({ account }) {
   };
 }
 
-async function settleBattleSession({ account }) {
+async function simulateBattleSessionStep({ account }) {
   const context = await loadActiveBattleContext({ account });
-  const simulation = runBattleSimulation({
+  const simulation = runSingleMissionSimulation({
     profile: context.profile,
     session: context.session,
     chapters: context.chapters,
   });
-  const session = await persistSimulationResult({
+  const session = await persistStepSimulationResult({
     prisma: context.prisma,
     playerId: context.player.id,
     simulation,
   });
-  const resolvedResult = normalizeResult(simulation.result);
+
+  return {
+    profile: context.profile,
+    session: buildBattleSessionPayload(session, context.chapters),
+    hero: simulation.hero,
+    enemy: simulation.enemy,
+    roundLogs: simulation.logs,
+    result: simulation.result,
+    summaryText: simulation.summaryText,
+    rewards: simulation.rewards,
+    flow: {
+      mode: 'step',
+      nextState: simulation.nextState,
+      requiresSkillChoice: simulation.nextState === 'choice',
+      canSettle: simulation.nextState === 'finished',
+      isBossWave: simulation.isBossWave,
+      isFinalWave: simulation.isFinalWave,
+      nextMissionId: simulation.nextMission?.id || null,
+    },
+  };
+}
+
+async function settleBattleSession({ account }) {
+  const prisma = getPrismaClient();
+  const { player, progress, profile } = await getPlayerProfileByAccount({ account });
+  const context = {
+    prisma,
+    player,
+    progress,
+    profile,
+    session: await prisma.playerBattleSession.findUnique({
+      where: {
+        playerId: player.id,
+      },
+    }),
+    chapters: getChapterConfigRows(),
+  };
+
+  if (!context.session || !['active', 'finished'].includes(context.session.status)) {
+    throw new Error('当前没有可结算的战斗会话');
+  }
+
+  const simulation = context.session.status === 'finished' && context.session.result
+    ? null
+    : runBattleSimulation({
+        profile: context.profile,
+        session: context.session,
+        chapters: context.chapters,
+      });
+  const session = simulation
+    ? await persistSimulationResult({
+        prisma: context.prisma,
+        playerId: context.player.id,
+        simulation,
+      })
+    : context.session;
+  const resolvedResult = normalizeResult(simulation?.result || session.result);
 
   const maxChapterId = context.chapters.length || context.progress.highestUnlockedChapterId;
   const nextProgress = await context.prisma.playerProgress.update({
@@ -612,7 +787,11 @@ async function settleBattleSession({ account }) {
       result: resolvedResult,
       currentChapter,
       justUnlockedChapter,
-      summaryText: simulation.summaryText,
+      summaryText: simulation?.summaryText || (
+        resolvedResult === 'victory'
+          ? '本局战斗已胜利，章节进度已结算。'
+          : '本局战斗失败，可返回章节页重试当前章节。'
+      ),
       nextAction: resolvedResult === 'victory'
         ? '返回章节页并刷新到最新解锁进度'
         : '可返回章节页重试当前章节',
@@ -625,5 +804,6 @@ module.exports = {
   sanitizeBattleSession,
   settleBattleSession,
   simulateBattleSession,
+  simulateBattleSessionStep,
   startBattleSession,
 };

@@ -77,6 +77,59 @@ async function ensureDatabaseSchema() {
   `);
 
   await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "PlayerBattleSkillCandidate" (
+      "id" TEXT NOT NULL PRIMARY KEY,
+      "playerId" TEXT NOT NULL,
+      "sessionId" TEXT NOT NULL,
+      "candidateRound" INTEGER NOT NULL DEFAULT 1,
+      "refreshCount" INTEGER NOT NULL DEFAULT 0,
+      "skillId" INTEGER NOT NULL,
+      "selectedAt" DATETIME,
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "PlayerBattleSkillCandidate_playerId_fkey"
+        FOREIGN KEY ("playerId") REFERENCES "Player" ("id")
+        ON DELETE CASCADE ON UPDATE CASCADE,
+      CONSTRAINT "PlayerBattleSkillCandidate_sessionId_fkey"
+        FOREIGN KEY ("sessionId") REFERENCES "PlayerBattleSession" ("id")
+        ON DELETE CASCADE ON UPDATE CASCADE
+    );
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "PlayerBattleSkillCandidate_sessionId_round_idx"
+    ON "PlayerBattleSkillCandidate" ("sessionId", "candidateRound");
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE UNIQUE INDEX IF NOT EXISTS "PlayerBattleSkillCandidate_session_round_skill_key"
+    ON "PlayerBattleSkillCandidate" ("sessionId", "candidateRound", "skillId");
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "PlayerBattleBuildSlot" (
+      "id" TEXT NOT NULL PRIMARY KEY,
+      "playerId" TEXT NOT NULL,
+      "sessionId" TEXT,
+      "slotIndex" INTEGER NOT NULL,
+      "skillId" INTEGER NOT NULL,
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "PlayerBattleBuildSlot_playerId_fkey"
+        FOREIGN KEY ("playerId") REFERENCES "Player" ("id")
+        ON DELETE CASCADE ON UPDATE CASCADE,
+      CONSTRAINT "PlayerBattleBuildSlot_sessionId_fkey"
+        FOREIGN KEY ("sessionId") REFERENCES "PlayerBattleSession" ("id")
+        ON DELETE SET NULL ON UPDATE CASCADE
+    );
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE UNIQUE INDEX IF NOT EXISTS "PlayerBattleBuildSlot_player_skill_key"
+    ON "PlayerBattleBuildSlot" ("playerId", "skillId");
+  `);
+
+  await prisma.$executeRawUnsafe(`
     INSERT INTO "PlayerProgress" (
       "id",
       "playerId",

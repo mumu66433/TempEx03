@@ -59,9 +59,15 @@
 | `GET` | `/api/player/home` | 读取首页聚合数据 | 主界面、章节入口、顶部玩家信息、战斗入口预览 |
 | `GET` | `/api/player/chapters` | 读取章节列表与解锁状态 | 章节页、章节卡片、关卡选择弹层 |
 | `GET` | `/api/player/skills` | 读取功法列表与详情展示所需字段 | 功法列表、功法详情、构筑展示只读态 |
+| `GET` | `/api/player/build` | 读取玩家当前构筑条 | 战斗页底部构筑栏、功法页构筑摘要 |
 | `GET` | `/api/battle/session` | 读取当前战斗会话 | 战斗入口恢复、HUD 初始态、结算后状态回显 |
 | `POST` | `/api/battle/session/start` | 创建或重置当前战斗会话 | 章节页点击开战、进入战斗页前置步骤 |
 | `POST` | `/api/battle/session/simulate` | 服务端模拟整场战斗并返回 HUD、战报、收益 | 战斗 HUD、文字战报、战斗结果预览 |
+| `POST` | `/api/battle/session/simulate-step` | 服务端模拟当前一波，普通波胜利后进入三选一 | V0 主循环、普通层/精英层/Boss 分段推进 |
+| `GET` | `/api/battle/session/skill-candidates` | 读取当前三选一候选功法 | 功法三选一弹窗 |
+| `POST` | `/api/battle/session/skill-candidates/refresh` | 刷新一次三选一候选功法 | 三选一刷新按钮 |
+| `POST` | `/api/battle/session/skill-candidates/confirm` | 确认选择候选功法并写入功法进度 | 三选一确认按钮、构筑条刷新 |
+| `GET` | `/api/battle/session/build` | 读取本局构筑条别名接口 | 战斗页底部构筑栏 |
 | `POST` | `/api/battle/session/settle` | 结算战斗并推进章节进度 | 结算页、返回章节页刷新进度 |
 | `GET` | `/api/config/chapter` | 读取章节静态配置 | 无账号配置预览、章节页兜底、联调自查 |
 
@@ -385,6 +391,12 @@
 | `skills[].statusText` | `string` | 后端拼好的状态文案 | 功法卡状态 |
 | `skills[].metaText` | `string` | 品质 / 门派 / 类型摘要 | 功法卡副标题 |
 | `skills[].canUpgrade` | `boolean` | 是否满足升级展示条件 | 升级态标识，不代表 V0 可调用升级接口 |
+| `skills[].isMaxStars` | `boolean` | 是否满星 | 功法列表满星角标、详情按钮置灰 |
+| `skills[].maxStars` | `number` | V0 星级上限，当前为 3 | 功法详情星级展示 |
+| `skills[].upgradeState` | `string` | `unowned` / `locked` / `upgradeable` / `max` | 功法详情升级状态 |
+| `skills[].upgradeStateText` | `string` | 升级状态中文文案 | 功法卡与详情按钮 |
+| `skills[].effectDesc` | `string` | 效果描述，优先来自配置 `desc` | 功法详情效果区 |
+| `skills[].genre` | `string` | 流派字段，等同 `moldType` | 功法列表流派标签 |
 
 空值/错误规则：
 
@@ -439,6 +451,12 @@
       "stars": 1,
       "nextUpgradeNeed": 10,
       "canUpgrade": true,
+      "isMaxStars": false,
+      "maxStars": 3,
+      "upgradeState": "upgradeable",
+      "upgradeStateText": "可升级",
+      "effectDesc": "提高闪避与机动能力，适合前期过渡。",
+      "genre": "轻功",
       "progress": {
         "level": 1,
         "exp": 12,
@@ -471,6 +489,12 @@
       "stars": 0,
       "nextUpgradeNeed": 0,
       "canUpgrade": false,
+      "isMaxStars": false,
+      "maxStars": 3,
+      "upgradeState": "unowned",
+      "upgradeStateText": "尚未拥有",
+      "effectDesc": "提升基础攻击，适合快速清普通波。",
+      "genre": "攻击",
       "progress": null,
       "statusText": "章节已开放 · 尚未拥有",
       "metaText": "R / 剑 / 攻击"
@@ -484,6 +508,76 @@
 V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUpgradeNeed`、`statusText` 只用于 UI 展示和一致性自查，不允许前端发起真实升级写库。
 
 如果后续要新增升级接口，需要同时补齐经验来源、消耗规则、等级上限、幂等策略、失败回滚、战力重算和 UI 二次确认，风险是会扩大 V0 范围并影响战斗数值闭环，建议放到 V1 或独立任务评审。
+
+### 5.2 GET /api/player/build
+
+用途：读取玩家当前构筑条。V0 后端按玩家已拥有功法推导构筑条，容量固定为 20，不开放拖拽换位、卸下或真实升级。
+
+请求参数：
+
+| 字段 | 位置 | 必填 | 类型 | 说明 |
+| --- | --- | --- | --- | --- |
+| `account` | query | 是 | `string` | 玩家账号 |
+
+核心返回字段：
+
+| 字段 | 类型 | 说明 | UI 使用位置 |
+| --- | --- | --- | --- |
+| `capacity` | `number` | V0 构筑容量，当前为 20 | 战斗页底部构筑栏 |
+| `used` | `number` | 已装配数量 | 构筑条进度 |
+| `remaining` | `number` | 剩余槽位 | 构筑条提示 |
+| `slots[]` | `array` | 已拥有功法转成的槽位列表 | 构筑卡片 |
+| `slots[].slotIndex` | `number` | 槽位序号 | 构筑卡排序 |
+| `slots[].skillId` | `number` | 功法 ID | 点击详情 |
+| `slots[].grade` | `string` | 品质 | 品质色 |
+| `slots[].sectType` | `string` | 门派 | 标签 |
+| `slots[].moldType` / `genre` | `string` | 流派 | 标签 |
+| `slots[].level` | `number` | 等级 | 构筑卡 |
+| `slots[].stars` | `number` | 星级 | 构筑卡 |
+| `effectsPreview[]` | `array` | 效果摘要 | 构筑条汇总 |
+| `display.summaryText` | `string` | 后端拼好的 `已拥有/容量` 文案 | 构筑条标题 |
+
+响应样例：
+
+```json
+{
+  "ok": true,
+  "capacity": 20,
+  "used": 1,
+  "remaining": 19,
+  "slots": [
+    {
+      "slotIndex": 1,
+      "skillId": 1,
+      "name": "轻身术",
+      "grade": "N",
+      "sectType": "通用",
+      "moldType": "轻功",
+      "genre": "轻功",
+      "level": 1,
+      "stars": 1,
+      "maxStars": 3,
+      "powerType": "dodge",
+      "powerRateText": ["10%", "20%", "50%"],
+      "effectDesc": "提高闪避与机动能力，适合前期过渡。",
+      "statusText": "已装配"
+    }
+  ],
+  "effectsPreview": [
+    {
+      "skillId": 1,
+      "name": "轻身术",
+      "powerType": "dodge",
+      "valueText": "10%"
+    }
+  ],
+  "display": {
+    "title": "本局构筑",
+    "summaryText": "1/20 本功法",
+    "emptyText": ""
+  }
+}
+```
 
 ## 6. 战斗接口
 
@@ -501,7 +595,7 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
 
 | 字段 | 类型 | 说明 | UI 使用位置 |
 | --- | --- | --- | --- |
-| `session.status` | `string` | `active` / `settled` | HUD 状态、按钮状态 |
+| `session.status` | `string` | `active` / `choice` / `finished` / `settled` | HUD 状态、按钮状态 |
 | `session.result` | `string \| null` | `victory` / `defeat` / `null` | 结果预览、结算入口 |
 | `session.chapter` | `object \| null` | 当前章节配置 | 战斗标题、章节副标题 |
 | `session.statusText` | `string` | 状态文案 | 战斗页状态条 |
@@ -757,7 +851,110 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
 }
 ```
 
-### 6.4 POST /api/battle/session/settle
+### 6.4 POST /api/battle/session/simulate-step
+
+用途：服务端只模拟当前会话指向的一波 Mission，用于 V0 “普通层/波次胜利 -> 三选一 -> 继续战斗 -> Boss/最终结算”的主循环。该接口不替换旧的整章 `simulate`，旧接口继续保留给现有前端兼容。
+
+请求体：
+
+| 字段 | 必填 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `account` | 是 | `string` | 玩家账号 |
+
+状态推进规则：
+
+| 当前波结果 | 会话状态 | 前端下一步 |
+| --- | --- | --- |
+| 普通 / 精英波胜利且后续仍有波次 | `session.status = "choice"` | 调用候选功法接口并展示三选一弹窗 |
+| Boss 波或最后一波胜利 | `session.status = "finished"`，`session.result = "victory"` | 进入胜利结算，调用 `settle` |
+| 任意波失败 | `session.status = "finished"`，`session.result = "defeat"` | 进入失败结算，调用 `settle` |
+
+核心返回字段：
+
+| 字段 | 类型 | 说明 | UI 使用位置 |
+| --- | --- | --- | --- |
+| `hero` | `object` | 当前波英雄最终快照 | 战斗 HUD |
+| `enemy` | `object` | 当前波与下一波摘要 | 波次横幅、敌方卡 |
+| `roundLogs` | `string[]` | 当前波文字战报 | 战报滚动列表 |
+| `flow.nextState` | `string` | `choice` / `finished` | 页面流转 |
+| `flow.requiresSkillChoice` | `boolean` | 是否打开三选一 | 三选一弹窗触发 |
+| `flow.canSettle` | `boolean` | 是否可结算 | 结算按钮 / 自动跳转 |
+| `flow.isBossWave` | `boolean` | 当前波是否 Boss | Boss 状态稿 |
+| `flow.nextMissionId` | `number \| null` | 下一波 Mission ID | 调试、波次预告 |
+
+响应样例：
+
+```json
+{
+  "ok": true,
+  "session": {
+    "id": "cmf0battle001",
+    "chapterId": 1,
+    "layerIndex": 2,
+    "waveIndex": 1,
+    "missionId": 2,
+    "status": "choice",
+    "result": null,
+    "statusText": "普通波胜利，等待选择功法",
+    "actions": {
+      "canStart": false,
+      "canSimulate": false,
+      "canSelectSkill": true,
+      "canSettle": false,
+      "canRetry": true
+    }
+  },
+  "hero": {
+    "name": "铁匠之子",
+    "maxLife": 100,
+    "currentLife": 96,
+    "atk": 10,
+    "status": "survived"
+  },
+  "enemy": {
+    "chapterId": 1,
+    "chapterName": "银杏村",
+    "totalWaveCount": 9,
+    "clearedWaveCount": 1,
+    "remainingWaveCount": 8,
+    "currentWave": {
+      "missionId": 1,
+      "layerIndex": 1,
+      "waveIndex": 1,
+      "enemyName": "山鸡",
+      "remainingLife": 0,
+      "cleared": true
+    },
+    "nextWave": {
+      "missionId": 2,
+      "layerIndex": 2,
+      "waveIndex": 1,
+      "enemyName": "野犬"
+    }
+  },
+  "roundLogs": [
+    "第1层第1波开始：遭遇 山鸡 x 1，敌方总生命 3，总攻击 2。",
+    "第1层第1波结束：山鸡 全部被击败。"
+  ],
+  "result": "victory",
+  "summaryText": "铁匠之子 成功打通 银杏村 全部 1 波，剩余生命 96/100。预计收益：铜钱 12，经验 3",
+  "rewards": {
+    "coin": 12,
+    "exp": 3
+  },
+  "flow": {
+    "mode": "step",
+    "nextState": "choice",
+    "requiresSkillChoice": true,
+    "canSettle": false,
+    "isBossWave": false,
+    "isFinalWave": false,
+    "nextMissionId": 2
+  }
+}
+```
+
+### 6.5 POST /api/battle/session/settle
 
 用途：服务端重新模拟并结算当前 active 会话，把结果写入会话状态，并在胜利时推进玩家章节进度。
 
@@ -848,28 +1045,26 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
 }
 ```
 
-## 7. V0 缺口评估与建议契约草案
+## 7. V0 三选一与构筑条接口契约
 
-当前后端没有以下真实写库接口：
+当前后端已补齐以下 V0 最小真实接口：
 
-| 缺口 | 当前状态 | 对前端影响 |
+| 接口能力 | 当前状态 | 对前端影响 |
 | --- | --- | --- |
-| 候选功法接口 | 未实现 | 战斗结算后的“选择功法”只能用静态展示或前端假数据 |
-| 刷新候选功法接口 | 未实现 | 无法服务端扣资源 / 记录刷新次数 |
-| 确认选择功法接口 | 未实现 | 无法把选择结果写入 `PlayerSkillProgress` |
-| 本局构筑条接口 | 未实现 | 无法持久化本局已选功法、槽位、临时增益 |
+| 候选功法接口 | 已实现 `GET /api/battle/session/skill-candidates` | 三选一弹窗可直接读取真实候选 |
+| 刷新候选功法接口 | 已实现 `POST /api/battle/session/skill-candidates/refresh` | V0 允许刷新一次，服务端记录轮次 |
+| 确认选择功法接口 | 已实现 `POST /api/battle/session/skill-candidates/confirm` | 选择结果写入 `PlayerSkillProgress`，并刷新构筑条 |
+| 本局构筑条接口 | 已实现 `GET /api/player/build` 与 `GET /api/battle/session/build` | 战斗页底部构筑栏可使用真实已拥有功法 |
 
-三选一评估：
+本次实现选择：
 
-| 方案 | 内容 | 优点 | 风险 | 建议 |
-| --- | --- | --- | --- | --- |
-| A | V0 不新增接口，只展示 `GET /api/player/skills` 只读功法状态 | 范围最小，不影响当前战斗闭环 | 选择功法、刷新、构筑条只能做假态 | 若 PM 要求快速联调 UI，选择 A |
-| B | 新增候选、刷新、确认选择三个接口，但不做完整构筑条 | 可支持结算页真实选择功法 | 需要补随机池、幂等、重复选择规则 | 若 PM 确认 V0 要真实获得功法，选择 B |
-| C | 新增完整本局构筑条、候选、刷新、确认选择与战斗加成联动 | 最接近正式玩法 | 涉及战斗数值、数据库 schema、前端状态机，范围明显扩大 | 不建议 V0 当前阶段采用 |
+| 方案 | 内容 | 当前结论 |
+| --- | --- | --- |
+| B+ | 新增候选、刷新一次、确认选择，并提供只读构筑条 | 已采用，覆盖 V0 主循环所需真实数据 |
 
-后端建议：当前 V0 真数据落地优先选择方案 A；如 PM 明确要求“结算页真实获得功法”，再以方案 B 单独开后端任务。
+边界说明：V0 构筑条按已拥有功法推导展示，当前不把构筑加成接入战斗数值；功法升级仍只展示状态，不开放真实升级接口。
 
-### 7.1 待新增：GET /api/battle/session/skill-candidates
+### 7.1 GET /api/battle/session/skill-candidates
 
 用途：读取当前战斗结算后的候选功法列表。
 
@@ -886,11 +1081,15 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
 {
   "ok": true,
   "sessionId": "cmf0battle001",
+  "chapterId": 1,
   "candidateRound": 1,
   "refreshCount": 0,
+  "maxRefreshCount": 1,
+  "canRefresh": true,
   "refreshCost": {
-    "coin": 20
+    "coin": 0
   },
+  "capacity": 20,
   "candidates": [
     {
       "candidateId": "cand_001",
@@ -903,9 +1102,22 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
       "owned": false,
       "levelPreview": 1,
       "powerRateText": ["10%", "20%", "50%"],
-      "selectState": "available"
+      "level": 0,
+      "levelPreview": 1,
+      "stars": 0,
+      "maxStars": 3,
+      "isMaxStars": false,
+      "selectState": "available",
+      "disabledReason": "",
+      "selected": false
     }
-  ]
+  ],
+  "selectedCandidate": null,
+  "display": {
+    "title": "选择一门功法",
+    "subtitle": "本轮候选 3 门，可刷新 1 次",
+    "emptyText": "暂无可选功法，可继续战斗"
+  }
 }
 ```
 
@@ -913,12 +1125,12 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
 
 | 规则 | 建议 |
 | --- | --- |
-| 候选池 | 从当前章节 `skillPoolRange` 内抽取，过滤未开放章节以外的功法 |
+| 候选池 | 从当前章节 `skillPoolRange` 内抽取，过滤未开放章节以外的功法，优先未拥有功法 |
 | 候选数量 | V0 建议固定 3 个 |
 | 幂等 | 同一 `sessionId` 未刷新前重复 GET 返回同一批候选 |
 | 空候选 | 返回 `candidates = []`，前端展示“暂无可选功法” |
 
-### 7.2 待新增：POST /api/battle/session/skill-candidates/refresh
+### 7.2 POST /api/battle/session/skill-candidates/refresh
 
 用途：刷新当前战斗结算候选功法。
 
@@ -937,11 +1149,10 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
   "sessionId": "cmf0battle001",
   "candidateRound": 2,
   "refreshCount": 1,
+  "maxRefreshCount": 1,
+  "canRefresh": false,
   "refreshCost": {
-    "coin": 20
-  },
-  "remainingCurrency": {
-    "coin": 372
+    "coin": 0
   },
   "candidates": [
     {
@@ -959,12 +1170,12 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
 
 | 规则 | 建议 |
 | --- | --- |
-| 刷新消耗 | V0 若没有货币表，不建议真实扣费；可先返回 `refreshCost` 但不落库 |
-| 刷新上限 | V0 建议每次结算最多 3 次 |
+| 刷新消耗 | V0 没有货币表，`refreshCost.coin = 0`，不扣费 |
+| 刷新上限 | V0 每个会话最多刷新 1 次 |
 | 幂等 | 每次 POST 创建新候选批次，需记录 `candidateRound` |
-| 错误 | 无 active / settled 结算上下文时返回 `400` |
+| 错误 | 超过刷新次数返回 `400`，`error = "候选功法已刷新过，V0 仅允许刷新一次"` |
 
-### 7.3 待新增：POST /api/battle/session/skill-candidates/confirm
+### 7.3 POST /api/battle/session/skill-candidates/confirm
 
 用途：确认选择一个候选功法，并写入玩家功法进度。
 
@@ -986,9 +1197,11 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
     "skillId": 1,
     "name": "轻身术",
     "ownedBefore": false,
+    "duplicate": false,
     "level": 1,
     "exp": 0,
-    "stars": 1
+    "stars": 1,
+    "statusText": "已拥有 · 1 星 · 等级 1"
   },
   "skillSummary": {
     "total": 24,
@@ -997,6 +1210,9 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
     "upgradeable": 0
   },
   "buildBar": {
+    "capacity": 20,
+    "used": 1,
+    "remaining": 19,
     "slots": [
       {
         "slotIndex": 1,
@@ -1005,8 +1221,7 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
         "grade": "N",
         "level": 1
       }
-    ],
-    "capacity": 5
+    ]
   }
 }
 ```
@@ -1015,12 +1230,23 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
 
 | 规则 | 建议 |
 | --- | --- |
-| 重复确认 | 同一会话只能确认一次；重复提交返回已确认结果或 `409`，需 PM 定规则 |
-| 已拥有功法 | 可转为经验或升星，但 V0 需要 PM 明确转换规则 |
-| 写库目标 | `PlayerSkillProgress`，必要时新增候选记录表保证幂等 |
-| 与 settle 关系 | 建议必须在 `settle` 成功后才能选择，避免失败局也获得功法 |
+| 重复确认 | 同一会话重复提交返回已确认结果，不重复写入 |
+| 已拥有功法 | V0 转为 `exp + 10`，不自动升星、不调用升级接口 |
+| 写库目标 | `PlayerSkillProgress`，候选记录写入 `PlayerBattleSkillCandidate` 保证幂等 |
+| 与逐波战斗关系 | `simulate-step` 普通波胜利后 `session.status = choice`，确认选择成功后恢复 `active` 并继续下一波 |
 
-### 7.4 待新增：GET /api/player/build
+### 7.4 GET /api/battle/session/build
+
+用途：读取战斗页当前构筑条，响应结构与 `GET /api/player/build` 一致，额外可通过 `sessionId` 透传当前会话 ID。
+
+请求参数：
+
+| 字段 | 位置 | 必填 | 类型 | 说明 |
+| --- | --- | --- | --- | --- |
+| `account` | query | 是 | `string` | 玩家账号 |
+| `sessionId` | query | 否 | `string` | 当前会话 ID |
+
+### 7.5 GET /api/player/build
 
 用途：读取玩家当前构筑条 / 已装配功法槽位。
 
@@ -1035,7 +1261,9 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
 ```json
 {
   "ok": true,
-  "capacity": 5,
+  "capacity": 20,
+  "used": 1,
+  "remaining": 19,
   "slots": [
     {
       "slotIndex": 1,
@@ -1062,9 +1290,9 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
 
 | 规则 | 建议 |
 | --- | --- |
-| V0 范围 | 只读展示即可，不建议加入拖拽换位、卸下、替换 |
-| 数据来源 | 可由 `PlayerSkillProgress` 推导，也可新增装配表 |
-| 战斗联动 | 若要影响战斗，需要同步修改 `battleSessionService` 的英雄快照计算 |
+| V0 范围 | 只读展示，不开放拖拽换位、卸下、替换 |
+| 数据来源 | 由 `PlayerSkillProgress` 推导，并在确认选择时写入 `PlayerBattleBuildSlot` |
+| 战斗联动 | 当前不影响战斗数值；若要影响战斗，需要同步修改 `battleSessionService` 的英雄快照计算 |
 
 ## 8. 前端一致性自查样例需求
 
@@ -1082,8 +1310,8 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
 | 文字战报 | `POST /api/battle/session/simulate` | `roundLogs` 顺序渲染、长列表滚动、空数组兜底 |
 | 胜利结算页 | `POST /api/battle/session/settle` | `justUnlockedChapter`、`currentChapter`、`summaryText`、下一步文案 |
 | 失败结算页 | `POST /api/battle/session/settle` | `result = defeat`、`justUnlockedChapter = null`、章节不推进 |
-| 候选功法选择页 | 待新增候选接口样例 | 当前无真实接口，必须使用 mock 或等待后端新增 |
-| 构筑条 | 待新增构筑条接口样例 | 当前无真实接口，必须使用 mock 或等待后端新增 |
+| 候选功法选择页 | `GET /api/battle/session/skill-candidates`、`POST /api/battle/session/skill-candidates/refresh`、`POST /api/battle/session/skill-candidates/confirm` | 3 卡同屏、刷新一次、满星禁选、确认后构筑条刷新 |
+| 构筑条 | `GET /api/player/build` 或 `GET /api/battle/session/build` | 容量 20、已拥有功法槽位、效果摘要、空构筑提示 |
 
 建议联调流程：
 
@@ -1106,5 +1334,5 @@ V0 仅展示升级状态，不开放升级接口。当前 `canUpgrade`、`nextUp
 | 结算页 | 已有接口支持，使用 `settle.settlement` |
 | 功法列表 / 详情 | 已有只读接口支持，使用 `GET /api/player/skills` |
 | 功法升级 | V0 仅展示升级状态，不开放升级接口 |
-| 候选功法 / 刷新 / 确认选择 | 当前无真实接口，需 PM 在 A/B/C 方案中确认是否新增 |
-| 本局构筑条 | 当前无真实接口，V0 如需真实构筑需新增契约与数据结构 |
+| 候选功法 / 刷新 / 确认选择 | 已有 V0 最小真实接口，使用 `GET /api/battle/session/skill-candidates`、`POST /api/battle/session/skill-candidates/refresh`、`POST /api/battle/session/skill-candidates/confirm` |
+| 本局构筑条 | 已有只读构筑条接口，使用 `GET /api/player/build` 或 `GET /api/battle/session/build`；V0 暂不将构筑加成接入战斗数值 |
